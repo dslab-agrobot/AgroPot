@@ -42,8 +42,8 @@ class CanFrame(object):
         BIT18 = 10
         _source_id_0 = 11
         _source_id_1 = 20
-        C1 = 20
-        c2 = 21
+        C0 = 20
+        c1 = 21
         CMD0REG_0 = 22
 
     class DeviceTable(Enum):
@@ -53,6 +53,12 @@ class CanFrame(object):
         SliderY = "000000011"
         SliderZ = "000000101"
         Pi = "000000110"
+
+    class _CWTable(Enum):
+        R_Stat_Reg = "00", "Read Status Register"
+        R_Data_Reg = "01", "Read Data Register"
+        W_Data_Reg = "10", "Write Data Register"
+        CMD = "11", "Command"
 
     def __init__(self, msg: can.message.Message):
         """Decode the can message specific  in VSMD1X6_SERIES CAN MOTER
@@ -96,7 +102,9 @@ class CanFrame(object):
 
         self.source_device = self.DeviceTable(self._source_id)
 
-        print("From %s \nTo %s\n CMD0RegAgr %s \n" %(self.source_device, self.target_device, "Not Defined"))
+        self._cw = self._CWTable((self._extID[self._ExtIdTable.c0:self._ExtIdTable.c1 + 1]))
+
+        print("From %s \nTo %s\n CMD0RegAgr %s \n" %(self.source_device, self.target_device, self._cw))
 
         #: Array to storage binary data converted by msg.data
         value = []
