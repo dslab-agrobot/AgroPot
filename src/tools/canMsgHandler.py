@@ -55,10 +55,10 @@ class CanFrame(object):
         Pi = "000000110"
 
     class _CWTable(Enum):
-        R_Stat_Reg = "00", "Read Status Register"
-        R_Data_Reg = "01", "Read Data Register"
-        W_Data_Reg = "10", "Write Data Register"
-        CMD = "11", "Command"
+        R_Stat_Reg = "00"  # "Read Status Register"
+        R_Data_Reg = "01"  # "Read Data Register"
+        W_Data_Reg = "10",  # "Write Data Register"
+        CMD = "11",  # "Command"
 
     def __init__(self, msg: can.message.Message):
         """Decode the can message specific  in VSMD1X6_SERIES CAN MOTER
