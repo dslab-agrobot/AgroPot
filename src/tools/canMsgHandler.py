@@ -1,6 +1,6 @@
 import time
 import can
-from enum import IntEnum
+from enum import IntEnum,Enum
 
 def initBuses(cfgs):
     """Initialize CAN-buses in software
@@ -33,62 +33,73 @@ def initBuses(cfgs):
     return busses
 
 
-class canFrame(object):
-    
-    class _extID_table(IntEnum):
+class CanFrame(object):
+
+    class _ExtIdTable(IntEnum):
         BIT27 = 0
-        TARGET_ID_0 = 1
-        TARGET_ID_1 = 10
+        _target_id_0 = 1
+        _target_id_1 = 10
         BIT18 = 10
-        SOURCE_ID_0 = 11
-        SOURCE_ID_1 = 20
+        _source_id_0 = 11
+        _source_id_1 = 20
         C1 = 20
         c2 = 21
         CMD0REG_0 = 22
 
-    def __init__(self):
-         
+    class DeviceTable(Enum):
+        BroadCast = "000000000"
+        SliderX0 = "000000001"
+        SliderX1 = "000000010"
+        SliderY = "000000011"
+        SliderZ = "000000101"
+        Pi = "000000110"
+
+    def __init__(self, msg: can.message.Message):
+        """Decode the can message specific  in VSMD1X6_SERIES CAN MOTER
+
+                :type msg: can.message.Message
+
+                .. note:
+                    Message.data could bring 8 bytes data maxium, which equals 2*8=16 hex digit
+                    Message.dlc means the count of data, which may be used for error checking (I AM NOT SHURE)
+
+                """
+
         #: Extend identifier with 29 bits 
-        self._extID = str(bin(0))
-        
-        #: Data frame with 8 byte (32 bits)
-        self._data = [bin(0)]
+        self._extID = ""
         
         #: Target ID self._extid[]
-        self.target_id = int(0)
+        self._target_id = ""
         
-        self.source_id = int(0)
-
-        self.cw = bin(0)
-
-        self.cmd0regAddr = bin(0)
-        
-        pass
-
-
-    def decode_msg(self, msg):
-        """Decode the can message specific  in VSMD1X6_SERIES CAN MOTER
-        
-        :type buses: can.message.Message
-        :param buses: message for one frame 
+        self.target_device = self.DeviceTable.Pi
     
-        .. note:
-            Message.data could bring 8 bytes data maxium, which equals 2*8=16 hex digit
-            Message.dlc means the count of data, which may be used for error checking (I AM NOT SHURE)
-    
-        """
-        #: Array to storage binary data converted by msg.data
-        value = []
+        self._source_id = ""
+        
+        self.source_device = self.DeviceTable.SliderX0
+        
+        #: Data frame with 8 byte (32 bits)
+        self._data = ""
+
+        self._cw = ""
+
+        self._cmd0regAdr = ""
+
         
         #: msg.arbitration_id is int , we need a string type of bin-array
         self._extID = str(bin(msg.arbitration_id))[2:].rjust(29, "0")
                
-        self.target_id = self._extID[self._extID_table.TARGET_ID_0:self._extID_table.TARGET_ID_1]
+        self._target_id = self._extID[self._ExtIdTable._target_id_0:self._ExtIdTable._target_id_1]
 
-        self.source_id = self._extID[self._extID_table.SOURCE_ID_0:self._extID_table.SOURCE_ID_1]
+        self.target_device = self.DeviceTable(self._target_id)
 
-        print(self._extID,self.target_id,self.source_id)
-    
+        self._source_id = self._extID[self._ExtIdTable._source_id_0:self._ExtIdTable._source_id_1]
+
+        self.source_device = self.DeviceTable(self._source_id)
+
+        print(self._extID,self.target_device,self.source_device)
+
+        #: Array to storage binary data converted by msg.data
+        value = []
         # Data frame Part
         #bytes_value=bytes(msg.arbitration_id).decode(encoding="utf-8")
         #for asc in bytes_value:
@@ -103,11 +114,10 @@ class canFrame(object):
 
 if __name__=="__main__":
     bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
-    can = canFrame()
     while True:
         for msg in bus:
             #print(dir(msg))
             #print(msg.arbitration_id)
             #print(msg.channel)
-            can.decode_msg(msg)
+            can = CanFrame(msg)
             #print(type(msg.data))
