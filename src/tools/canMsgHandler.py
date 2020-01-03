@@ -49,7 +49,7 @@ class canFrame(object):
     def __init__(self):
          
         #: Extend identifier with 29 bits 
-        self._extID = [bin(0)]
+        self._extID = str(bin(0))
         
         #: Data frame with 8 byte (32 bits)
         self._data = [bin(0)]
@@ -80,12 +80,14 @@ class canFrame(object):
         #: Array to storage binary data converted by msg.data
         value = []
         
-        #: msg.data is (byterarray)
-        #: bytearray -> bytes -> string ;  
-        self._extID=str(bin(msg.arbitration_id))[2:].rjust(29,"0")
+        #: msg.arbitration_id is int , we need a string type of bin-array
+        self._extID = str(bin(msg.arbitration_id))[2:].rjust(29, "0")
                
-        
-        print(self._extID)
+        self.target_id = self._extID[self._extID_table.TARGET_ID_0:self._extID_table.TARGET_ID_1]
+
+        self.source_id = self._extID[self._extID_table.SOURCE_ID_0:self._extID_table.SOURCE_ID_1]
+
+        print(self._extID,self.target_id,self.source_id)
     
         # Data frame Part
         #bytes_value=bytes(msg.arbitration_id).decode(encoding="utf-8")
