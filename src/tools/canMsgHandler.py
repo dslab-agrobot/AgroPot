@@ -96,7 +96,7 @@ class CanFrame(object):
 
         self.source_device = self.DeviceTable(self._source_id)
 
-        print(self._extID,self.target_device,self.source_device)
+        print("From %s \nTo %s\n CMD0RegAgr %s \n" %(self.source_device, self.target_device, "Not Defined"))
 
         #: Array to storage binary data converted by msg.data
         value = []
