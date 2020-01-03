@@ -43,7 +43,7 @@ class CanFrame(object):
         _source_id_0 = 11
         _source_id_1 = 20
         C0 = 20
-        c1 = 21
+        C1 = 21
         CMD0REG_0 = 22
 
     class DeviceTable(Enum):
@@ -102,7 +102,7 @@ class CanFrame(object):
 
         self.source_device = self.DeviceTable(self._source_id)
 
-        self._cw = self._CWTable((self._extID[self._ExtIdTable.c0:self._ExtIdTable.c1 + 1]))
+        self._cw = self._CWTable((self._extID[self._ExtIdTable.C0:self._ExtIdTable.C1 + 1]))
 
         print("From %s \nTo %s\n CMD0RegAgr %s \n" %(self.source_device, self.target_device, self._cw))
 
