@@ -41,7 +41,7 @@ class CanFrame(object):
         data_msg = []
         bytes_value = bytes(message.data).decode(encoding="utf-8")
         for asc in bytes_value:
-            data_msg.append(str(bin(ord(asc)))[:].rjust(4,"0"))
+            data_msg.append(str(bin(ord(asc)))[2:].rjust(4, "0"))
 
 
         print(ext_msg, data_msg)
