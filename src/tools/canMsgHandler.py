@@ -36,8 +36,13 @@ def initBuses(cfgs):
 class CanFrame(object):
 
     def __init__(self, message):
-        ext_msg = message.arbitration_id
-        data_msg = message.data
+        ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
+
+        data_msg = []
+        bytes_value = bytes(message.data).decode(encoding="utf-8")
+        for asc in bytes_value:
+            data_msg.append(str(bin(ord(asc)))[:].rjust(4,"0"))
+
 
         print(ext_msg, data_msg)
 
@@ -119,8 +124,6 @@ class CanFrame(object):
             self._cw = self._CWTable((self._extID[self._ExtIdTable.C0:self._ExtIdTable.C1 + 1]))
 
             print("From: %s \nTo: %s\nCMD0RegAgr: %s \n" % (self.source_device, self.target_device, self._cw))
-
-
 
     class CanDataFrame(object):
         pass
