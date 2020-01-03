@@ -39,8 +39,9 @@ class CanFrame(object):
         ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
 
         data_msg = []
-        bytes_value = bytes(message.data).decode(encoding="utf-8")
+        bytes_value = ord(bytes(message.data)).decode(encoding="utf-8")
         for asc in bytes_value:
+
             data_msg.append(str(bin(ord(asc)))[2:].rjust(4, "0"))
 
 
