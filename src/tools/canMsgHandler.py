@@ -1,6 +1,6 @@
 import time
 import can
-from enum import Enum
+from enum import IntEnum
 
 def initBuses(cfgs):
     """Initialize CAN-buses in software
@@ -35,7 +35,7 @@ def initBuses(cfgs):
 
 class canFrame(object):
     
-    class _extID_table(Enum):
+    class _extID_table(IntEnum):
         BIT27 = 0
         TARGET_ID_0 = 1
         TARGET_ID_1 = 10
