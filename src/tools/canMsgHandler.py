@@ -2,7 +2,6 @@ import time
 import can
 from enum import Enum
 
-bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
 
 class canFrame(object):
     
@@ -36,7 +35,8 @@ class canFrame(object):
         
         pass
 
-    def decodeMsg(self,msg):
+
+    def decode_msg(self, msg):
         """Decode the can message specific  in VSMD1X6_SERIES CAN MOTER
         
         :type buses: can.message.Message
@@ -56,9 +56,9 @@ class canFrame(object):
     
         for asc in bytes_value:
             value.append(bin(ord(asc)))
+
+        self._extID = value
         value = str(value)
-    
-        self._extID = value[self] 
         print(value)
 
 def initBuses(cfgs):
@@ -98,10 +98,10 @@ def initBuses(cfgs):
     
 
 if __name__=="__main__":
+    bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
     while True:
         for msg in bus:
-            decodeMsg(msg)
             #print(dir(msg))
             #print(msg.dlc)
-            #print(msg.data)
+            print(msg.data)
             #print(type(msg.data))
