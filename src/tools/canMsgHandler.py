@@ -99,9 +99,10 @@ def initBuses(cfgs):
 
 if __name__=="__main__":
     bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
+    can = canFrame()
     while True:
         for msg in bus:
             #print(dir(msg))
             #print(msg.dlc)
-            print(msg.data)
+            print(can.decode_msg(msg))
             #print(type(msg.data))
