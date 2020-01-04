@@ -71,7 +71,7 @@ class CanFrame(object):
 
         self.ext_frame = self.CanExtFrame(ext_msg)
         
-        self.data_frame = self.CanDataFrame(data_msg)
+        # self.data_frame = self.CanDataFrame(data_msg)
 
     class CanExtFrame(object):
         """CAN Extend Identifier Frame
@@ -133,8 +133,8 @@ class CanFrame(object):
         class CWTable(Enum):
             R_Stat_Reg = "00"  # "Read Status Register"
             R_Data_Reg = "01"  # "Read Data Register"
-            W_Data_Reg = "10",  # "Write Data Register"
-            CMD = "11",  # "Command"
+            W_Data_Reg = "10"  # "Write Data Register"
+            CMD = "11"  # "Command"
 
         class CMDTable(Enum):
             ENA = "0000001"
