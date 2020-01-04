@@ -184,7 +184,7 @@ class CanFrame(object):
 
             self._cw = self.CWTable((self._extID[self._ExtIdTable.C0:self._ExtIdTable.C1 + 1]))
 
-            self.cmd0regAdr = self._extID[self._ExtIdTable.CMD0REG_0:]
+            self.cmd0regAdr = self.CMDTable(self._extID[self._ExtIdTable.CMD0REG_0:])
 
             print("From: %s \nTo: %s\nCMD: %s \nCMD0RegAgr: %s \n"
                   % (self.source_device, self.target_device, self._cw, self.cmd0regAdr))
