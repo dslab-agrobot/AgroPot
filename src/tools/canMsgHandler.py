@@ -172,7 +172,7 @@ class CanFrame(object):
 
 
             #: msg.arbitration_id is int , we need a string type of bin-array
-            self._extID = str(bin(ext_msg))[2:].rjust(29, "0")
+            self._extID = ext_msg
 
             self._target_id = self._extID[self._ExtIdTable._target_id_0:self._ExtIdTable._target_id_1]
 
