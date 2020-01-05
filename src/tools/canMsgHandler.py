@@ -1,7 +1,6 @@
 import time
 import can
-from enum import IntEnum,Enum
-import collections
+from enum import IntEnum, Enum
 from collections import OrderedDict
 
 
@@ -27,6 +26,11 @@ class MyOrderedDict(OrderedDict):
         """
         super().__init__(*a, **kw)
         self.__list = list(self.keys())
+        self.name_key = {}
+        for _k, _v in self.items():
+            self.name_key[_v[0]] = _k
+        print(self.name_key)
+
 
     def next_key(self, key):
         """Get next key in order
@@ -41,6 +45,9 @@ class MyOrderedDict(OrderedDict):
             raise ValueError("{!r} is the last key".format(key))
         __next = self.__list[__index + 1]
         return __next
+
+    def get_key(self,t_name):
+        pass
 
     def first_key(self):
         for key in self:
@@ -100,21 +107,25 @@ class CanFrame(object):
             have no idea what you are really doing with CAN Frame
         
         """
+
+        # can device : can0 , vcan0
         self.channel = message.channel
 
+        # Data Length Code , Every two 0x para get 1 DLC
         self.dlc = message.dlc
 
         # :type message.arbitration_id : int
         # Convert this int to bin and use string to storage
         ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
 
+        # :type [str,]
         data_msg = []
 
         # :type message.data : bytearray
         # Each element convert to an int in bytearray iteration
         i = 0
         for t_int in message.data:
-
+            # Every two dlc data get 32-bit , which can be used for a register
             if i % 2 == 0:
                 data_msg.append(str(t_int).rjust(2, "0"))
             else:
@@ -297,10 +308,10 @@ class CanFrame(object):
         })
 
         StatusRegDict = MyOrderedDict({
-            "0000000": "SPD",
-            "0000001": "POS",
-            "0000010": "STATUS",
-            "0001010": "VSMD_Version"
+            "0000000": ["SPD", "Current Speed (float32)"],
+            "0000001": ["POS", "Current Position (int32)"],
+            "0000010": ["STATUS", "Status Code (u-int32)"],
+            "0001010": ["VSMD_Version", "VSMD116-025T-1.0.000.171010"]
         })
 
         class SensorValueTable(IntEnum):
@@ -393,6 +404,10 @@ class CanFrame(object):
                 debug_msg += log_end()
                 print(debug_msg)
             pass
+
+    @classmethod
+    def easy_cmd(cls,):
+        pass
 
 
 def log_formatter(title, tcs):
