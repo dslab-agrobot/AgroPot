@@ -1,6 +1,13 @@
 from enum import IntEnum, Enum
 from collections import OrderedDict
-from ctypes import pointer, cast, c_int, c_float, POINTER
+from ctypes import *
+    #pointer, cast, c_int, c_float, POINTER
+from types import MappingProxyType, DynamicClassAttribute
+
+
+step_base = 200
+mm_per_loop = 8
+
 
 class AwesomeOrderedDict(OrderedDict):
     """ OrderedDict With Next() and First()
@@ -28,7 +35,6 @@ class AwesomeOrderedDict(OrderedDict):
         for _k, _v in self.items():
             self.name_key[_v[0]] = _k
 
-
     def next_key(self, key):
         """Get next key in order
 
@@ -43,13 +49,37 @@ class AwesomeOrderedDict(OrderedDict):
         __next = self.__list[__index + 1]
         return __next
 
-    def get_key(self,t_name):
-        pass
+    def get_key(self, t_name):
+        return self.name_key[t_name]
 
     def first_key(self):
         for key in self:
             return key
         raise ValueError("OrderedDict() is empty")
+
+
+class OhEnum(Enum):
+
+    def p(self):
+        if hasattr(self, "a"):
+            print("Fuck")
+        print(MappingProxyType(self._member_map_))
+        print(self.value)
+        pass
+
+    @classmethod
+    def t(cls):
+        print(cls.__members__)
+
+class Test(OhEnum):
+    X = 1
+    A = 2
+    Y = 0
+    Z = 3
+
+a = Test.X
+a.p()
+
 
 
 class ExtIdTable(IntEnum):
@@ -132,12 +162,12 @@ DigitRegDict = AwesomeOrderedDict({
 
     # ADR        Description   Value and Detail
     "0000000": ["Channel ID", "Determined by motor"],  # 0x00
-    "0000001": ["Baud rate", "Default 132000"],  # 0x01
+    "0000001": ["Baud Rate", "Default 132000"],  # 0x01
     "0000010": ["Motor Control Subdivision",
                 "0 : one step \n1 : 1/2\n2 : 1/4\n3 : 1/8\n4: 1/16\n5 : 1/32\n"
                 "6 : 1/64 (Ser-045,13X,14X Only)\n7:1/128 (Ser-045,13X,14X Only)\n"
                 "8 : 1/256 (Ser-045,13X,14X Only)"],  # 0x02
-    "0000011": ["Target speed", "(-192000,192000)pps"],  # 0x03
+    "0000011": ["Target Speed", "(-192000,192000)pps"],  # 0x03
     "0000100": ["Accelerate", "(0,192000000)pps/s"],  # 0x04
     "0000101": ["Decelerate", "(0,192000000)pps/s"],  # 0x05
     "0000110": ["Current Accelerate", "0-2.5A(Series-025)\n0-4.5A(Series-045)"],  # 0x06
@@ -227,8 +257,103 @@ class CWTable(Enum):
     CMD = "11"  # "Command"
 
 
+class BaudRateTable(Enum):
+    BDR_001C2132 = 20000
+    BDR_00168132 = 25000
+    BDR_0012C132 = 30000
+    BDR_000E1132 = 40000
+    BDR_0000B413 = 50000
+    BDR_00005A16 = 60000
+    BDR_00007813 = 75000
+    BDR_00004B15 = 80000
+    BDR_00004B14 = 90000
+    BDR_00005A13 = 100000
+    BDR_00004813 = 125000
+    BDR_00003C13 = 150000
+    BDR_00002D13 = 200000
+    BDR_00002413 = 250000
+    BDR_00001E13 = 300000
+    BDR_0000F153 = 400000
+    BDR_00012132 = 500000
+    BDR_00009163 = 600000
+    BDR_00008153 = 750000
+    BDR_00006163 = 900000
+    BDR_00009132 = 1000000
+
+
 def hex2float(_hex):
     i = int(_hex, 16)                   # convert from hex to a Python int
     cp = pointer(c_int(i))           # make this into a c integer
     fp = cast(cp, POINTER(c_float))  # cast the int pointer to a float pointer
     return fp.contents.value
+
+def float2hex(_f):
+    cp = pointer(c_float(_f))
+    fp = cast(cp, POINTER(c_int))
+    return hex(fp.contents.value)
+
+def hex2int32(_hex):
+    i = int(_hex, 16)
+    cp = pointer(c_int(i))
+    fp = cast(cp, POINTER(c_int32))
+    return fp.contents.value
+
+
+class CommonCMD(object):
+
+    @staticmethod
+    def easy_cmd(tar: DeviceTable, src: DeviceTable, cw: CWTable, cmd0reg, data):
+        """
+
+        :param tar:
+        :param src:
+        :param cw:
+        :param cmd0reg:
+            1. R/W Register: RegName (str) like "Channel ID"
+            2. Command to VSMD: Command (CMTable) like CMDTable.READ_DAtA_REGS
+        :param data:
+            1. Read Register: RegCount (int) like 3 which will be convert to D1 D2
+            2. Write Register: Data (int or float) which will be convert to D1-D4 (Write one register per can-frame)
+            3. Command: "STP,MOV,POS,RMV,READ_STATUS_REGS,READ_DATA_REGS" has data
+        :return:
+        """
+
+        data_frame = "0"*16
+        if cw == CWTable.R_Stat_Reg or cw == CWTable.R_Data_Reg :
+            # It wrote in motor
+            print("it determined by motor !")
+            return "00000000#0000000000000000"
+        if cw == CWTable.W_Data_Reg:
+            reg_name = cmd0reg
+            cmd0reg = DigitRegDict.get_key(cmd0reg)
+            if reg_name in ["Target Speed", "Accelerate", "Decelerate", "Current Accelerate",
+                            "Current Normal", "Current Hold"]:
+                data_frame = str(float2hex(data))[2:].ljust(16, "0")
+            elif reg_name in ["Channel ID", "Motor Control Subdivision"] :
+                data_frame = str(hex(data))[2:].ljust(16, "0")
+            else:
+                print("Not Defined ! ")
+                data_frame = str(hex(data))[2:].ljust(16, "0")
+        else: # CWTable.CMD
+            if cmd0reg in [CMDTable.ENA, CMDTable.OFF]:
+                data_fame = "0"*16
+            elif cmd0reg in [CMDTable.STP]:
+                data_frame = str(hex(data))[2:].ljust(16, "0")
+            elif cmd0reg in [CMDTable.MOV, CMDTable.POS, CMDTable.RMV]:
+                data_frame = str(float2hex(data))[2:].ljust(16, "0")
+            elif cmd0reg in [CMDTable.READ_DATA_REGS, CMDTable.READ_STATUS_REGS]:
+                data_frame = str(hex(data[0]))[2:].ljust(2, "0") + str(hex(data[1]))[2:].ljust(2, "0") +"0"*12
+
+
+            cmd0reg = cmd0reg.value
+
+        ext_frame = "000" + tar.value + ("0" if tar != DeviceTable.BroadCast else "1") + src.value + cw.value + cmd0reg
+        print("Bin Ext:", ext_frame)
+        ext_frame = str(hex(int(ext_frame, 2)))[2:].rjust(8, "0")
+        print("%s#%s"%(ext_frame, data_frame))
+
+        pass
+
+
+# CommonCMD.easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.SliderX0, cw=CWTable.CMD, cmd0reg=CMDTable.READ_STATUS_REGS, data=[0,1])
+# print(hex2int32("00012132"))

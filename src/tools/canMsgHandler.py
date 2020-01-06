@@ -73,15 +73,16 @@ class CanFrame(object):
         i = 0
         for t_int in message.data:
             # Every two dlc data get 32-bit , which can be used for a register
-            if i % 2 == 0:
+            if i % 4 == 0:
                 data_msg.append(str(hex(t_int))[2:].rjust(2, "0"))
             else:
-                f_i = int((i-1)/2)
+                f_i = int(i/4)
                 data_msg[f_i] += str(hex(t_int))[2:].rjust(2, "0")
-                print(hex2float(data_msg[f_i]))
-                data_msg[f_i] = str(int(data_msg[f_i], 16))
+                # What the data mean dues to what reg it is
+                # so we reserve the 0x number
+                # print(hex2float(data_msg[f_i]))
+                # data_msg[f_i] = str(int(data_msg[f_i], 16))
             i += 1
-
         if debug:
             debug_msg = log_end()
             debug_msg += log_formatter("Main: ", [
@@ -142,7 +143,7 @@ class CanFrame(object):
         def __init__(self, dlc, data_msg, cw, cmd0adr, debug=False):
 
             self.cw = CWTable(cw)
-            self.cnt_data = int(dlc/2)
+            self.cnt_data = int(dlc/4)
             self.regs_values = {}
             self.status = None
 
@@ -192,12 +193,8 @@ class CanFrame(object):
                 if self.status is not None :
                     debug_msg += log_formatter("STATUS", self.status)
                 debug_msg += log_end()
-                # print(debug_msg)
+                print(debug_msg)
             pass
-
-    @classmethod
-    def easy_cmd(cls,):
-        pass
 
 
 def log_formatter(title, tcs):
