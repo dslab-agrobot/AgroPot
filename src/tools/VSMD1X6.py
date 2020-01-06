@@ -1,6 +1,6 @@
 from enum import IntEnum, Enum
 from collections import OrderedDict
-
+from ctypes import pointer, cast, c_int, c_float, POINTER
 
 class AwesomeOrderedDict(OrderedDict):
     """ OrderedDict With Next() and First()
@@ -27,7 +27,6 @@ class AwesomeOrderedDict(OrderedDict):
         self.name_key = {}
         for _k, _v in self.items():
             self.name_key[_v[0]] = _k
-        print(self.name_key)
 
 
     def next_key(self, key):
@@ -39,7 +38,7 @@ class AwesomeOrderedDict(OrderedDict):
             when we get a last key or the key is not in the dict
         """
         __index = self.__list.index(key)
-        if __index >= self.__list.__len__():
+        if __index >= self.__list.__len__() - 1:
             raise ValueError("{!r} is the last key".format(key))
         __next = self.__list[__index + 1]
         return __next
@@ -147,6 +146,7 @@ DigitRegDict = AwesomeOrderedDict({
     "0001001": ["Function Settings for S1,S2", "See SensorValueTable"],  # 0x09
     "0001010": ["Function Settings for S3,S4", "See SensorValueTable"],  # 0x0A
     "0001011": ["Function Settings for S5,S6", "See SensorValueTable"],  # 0x0B
+    "0001100": ["Reserved", "Blank"],  # 0x0C
     "0001101": ["Settings for S1-S6",
                 "0 : Input\n1:Output\nBit Definition\nBIT0 : Fixed Input for S1\nBIT1 : Fixed Input for S2\n"
                 "BIT2 : S3\nBIT3 : S4\nBIT4 : S5\nBIT5 : S6"],  # 0x0D
@@ -160,6 +160,8 @@ DigitRegDict = AwesomeOrderedDict({
     "0010011": ["Offline Mod", "0 : Normal mode\n1 : zeroing before offline"],  # 0x13
     "0010100": ["Duration when online and no communication",
                 "0 : No auto running\n1-60 : time(sec)"],  # 0x14
+    "0010101": ["Reserved", "Blank"],  # 0x15
+    "0010110": ["Reserved", "Blank"],  # 0x16
     "0010111": ["MSR_MSV_PSR_PSV",
                         "MSR (Negative sensor)\n0 : No negative limit\n1 : S1\n2 : S2\n3 :S3\n4 : S4"
                         "5 : S5\n6 : S6\nMSV (Negative trigger level)\n0 : low level\n1 : high level\n"
@@ -223,3 +225,10 @@ class CWTable(Enum):
     R_Data_Reg = "01"  # "Read Data Register"
     W_Data_Reg = "10"  # "Write Data Register"
     CMD = "11"  # "Command"
+
+
+def hex2float(_hex):
+    i = int(_hex, 16)                   # convert from hex to a Python int
+    cp = pointer(c_int(i))           # make this into a c integer
+    fp = cast(cp, POINTER(c_float))  # cast the int pointer to a float pointer
+    return fp.contents.value

@@ -1,5 +1,5 @@
 import can
-from .VSMD1X6 import *
+from VSMD1X6 import *
 
 
 def init_buses(cfgs):
@@ -74,9 +74,12 @@ class CanFrame(object):
         for t_int in message.data:
             # Every two dlc data get 32-bit , which can be used for a register
             if i % 2 == 0:
-                data_msg.append(str(t_int).rjust(2, "0"))
+                data_msg.append(str(hex(t_int))[2:].rjust(2, "0"))
             else:
-                data_msg[int((i-1)/2)] += str(t_int).rjust(2, "0")
+                f_i = int((i-1)/2)
+                data_msg[f_i] += str(hex(t_int))[2:].rjust(2, "0")
+                print(hex2float(data_msg[f_i]))
+                data_msg[f_i] = str(int(data_msg[f_i], 16))
             i += 1
 
         if debug:
@@ -129,7 +132,8 @@ class CanFrame(object):
             if debug:
                 debug_msg = log_formatter("Extend ID Frame", [
                     ("Source Device", self.source_device.name), ("Target Device", self.target_device.name),
-                    ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr)
+                    ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) !=
+                    CWTable.CMD else CMDTable(self.cmd0regAdr).name)
                 ])
                 print(debug_msg)
 
@@ -146,20 +150,26 @@ class CanFrame(object):
                 _result = []
                 _last_key = "None"
                 for _i in range(self.cnt_data):
-                    if _last_key == "None":
-                        _last_key = cmd0adr
-                    else:
-                        _last_key = _my_t.next_key(_last_key)
-                    _result.append(([_my_t[_last_key][0]], _data[_i]))
+                    try:
+                        if _last_key == "None":
+                            _last_key = cmd0adr
+                        else:
+                            _last_key = _my_t.next_key(_last_key)
+                        _result.append(([_my_t[_last_key][0]], _data[_i]))
+                    except ValueError as e:
+                        war_log = log_formatter("Warning", [("Message", e)])
+                        print(war_log)
+                        break
                 return _result
 
             def _fill_stat_value_inf(_data):
                 _result = []
                 for record in StatusValueTuple:
                     _v = _data[record[0]]
-                    _result.append(
-                        [record[2], _v, record[-1] if _v == "1" else "Default"]
-                    )
+                    if _v == "1":
+                        _result.append(
+                            [record[2], _v, record[-1]]
+                        )
                 return _result
 
             if self.cw == CWTable.R_Stat_Reg:
@@ -182,7 +192,7 @@ class CanFrame(object):
                 if self.status is not None :
                     debug_msg += log_formatter("STATUS", self.status)
                 debug_msg += log_end()
-                print(debug_msg)
+                # print(debug_msg)
             pass
 
     @classmethod
@@ -203,6 +213,9 @@ def log_end():
 
 if __name__ == "__main__":
     bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
+    cnt = 0
     while True:
         for msg in bus:
+            print("\n%2d\n" % cnt)
+            cnt += 1
             can = CanFrame(msg, debug=True)
