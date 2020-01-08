@@ -169,6 +169,7 @@ class CanFrame(object):
             self.status = None
 
             self.ERROR_FLG = False
+            self.debug_msg = ""
 
             def _fill_reg_inf(_cnt: int, _data, _my_t):
                 _result = []
@@ -176,12 +177,12 @@ class CanFrame(object):
                 try:
                     _reg = _my_t.query(cmd0adr)
                 except ValueError as e:
-                    if int(cmd0adr, 2) <= 16:
+                    if _my_t is StatusRegTable and int(cmd0adr, 2) <= 16:
                         self.debug_msg += log_formatter("*** Warning ***",
                                                         [("Key Not Found", "No Key in table , reserved ?")])
                         return _result
                     else:
-                        raise e
+                        return ""
 
                 for _i in range(_cnt):
                     try:
@@ -245,7 +246,7 @@ class CanFrame(object):
             elif self.cw == CWTable.CMD:
                 self.command = CMDTable(cmd0adr)
 
-            self.debug_msg = log_formatter("Action", [("CW Means", self.cw.name)])
+            self.debug_msg += log_formatter("Action", [("CW Means", self.cw.name)])
             if self.cw in [CWTable.W_Data_Reg, CWTable.R_Data_Reg]:
                 self.debug_msg += log_formatter("Data Frame - Data Reg", self.regs_values)
             elif self.cw == CWTable.CMD:
