@@ -1,4 +1,5 @@
 import can
+import time
 from VSMD1X6 import *
 
 
@@ -108,6 +109,7 @@ class CanFrame(object):
         if self.ERROR_FLG or self.ext_frame.ERROR_FLG or self.data_frame.ERROR_FLG:
             debug_msg = self.debug_msg + self.ext_frame.debug_msg + self.data_frame.debug_msg
             with open("/home/pi/log.txt", "a+") as file:
+                debug_msg = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n" + debug_msg + "\n"
                 file.write(debug_msg)
 
 
