@@ -68,6 +68,8 @@ class CanFrame(object):
         # :type [str,]
         data_msg = []
 
+        self.ERROR_FLG = False
+
         # :type message.data : bytearray
         # Each element convert to an int in bytearray iteration
         i = 0
@@ -83,19 +85,32 @@ class CanFrame(object):
                 # print(hex2float(data_msg[f_i]))
                 # data_msg[f_i] = str(int(data_msg[f_i], 16))
             i += 1
+
+        raw_dm = ""
+        for dm in data_msg:
+            raw_dm += dm.ljust(8, "0")
+        raw_dm = raw_dm.ljust(16, "0")
+
+        self.debug_msg = log_end()
+        self.debug_msg += log_formatter("Main: ", [("Raw", str(hex(msg.arbitration_id))[2:].rjust(8, "0")+"#"+raw_dm),
+            ("Sender", self.channel), ("Extent ID Frame", ext_msg), ("DLC", self.dlc), ("Data Frame", data_msg)
+        ])
+        if self.dlc % 2 != 0:
+            self.debug_msg += log_formatter("*** Warning ***", [("DLC Count warning", "DLC count should not be ODD")])
         if debug:
-            debug_msg = log_end()
-            debug_msg += log_formatter("Main: ", [
-                ("Sender", self.channel), ("Extent ID Frame", ext_msg), ("DLC", self.dlc), ("Data Frame", data_msg)
-            ])
-            if self.dlc % 2 != 0:
-                debug_msg += log_formatter("*** Warning ***", [("DLC Count warning", "DLC count should not be ODD")])
-            print(debug_msg)
+            print(self.debug_msg)
 
         self.ext_frame = self.CanExtFrame(ext_msg, debug=debug)
         
         self.data_frame = self.CanDataFrame(data_msg=data_msg, dlc=self.dlc, cw=self.ext_frame.cw,
                                             cmd0adr=self.ext_frame.cmd0regAdr, debug=debug)
+
+        if self.ERROR_FLG or self.ext_frame.ERROR_FLG or self.data_frame.ERROR_FLG:
+            debug_msg = self.debug_msg + self.ext_frame.debug_msg + self.data_frame.debug_msg
+            with open("/home/pi/log.txt", "a+") as file:
+                file.write(debug_msg)
+
+
 
     class CanExtFrame(object):
         """CAN Extend Identifier Frame
@@ -110,10 +125,11 @@ class CanFrame(object):
                     :type ext_msg: str
 
                     .. note:
-                        Message.data could bring 8 bytes data maxium, which equals 2*8=16 hex digit
+                        Message.data could bring 8 bytes data maxium, which equals 2*8=16 hex Data
                         Message.dlc means the count of data, which may be used for error checking (I AM NOT SHURE)
 
             """
+            self.ERROR_FLG = False
 
             #: msg.arbitration_id is int , we need a string type of bin-array
             self._extID = ext_msg
@@ -130,33 +146,64 @@ class CanFrame(object):
 
             self.cmd0regAdr = self._extID[ExtIdTable.CMD0REG_0:]
 
+            self.debug_msg = log_formatter("Extend ID Frame", [
+                ("Source Device", self.source_device.name), ("Target Device", self.target_device.name),
+                ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) !=
+                CWTable.CMD else CMDTable(self.cmd0regAdr).name)
+            ])
             if debug:
-                debug_msg = log_formatter("Extend ID Frame", [
-                    ("Source Device", self.source_device.name), ("Target Device", self.target_device.name),
-                    ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) !=
-                    CWTable.CMD else CMDTable(self.cmd0regAdr).name)
-                ])
-                print(debug_msg)
+                print(self.debug_msg)
 
     class CanDataFrame(object):
 
         def __init__(self, dlc, data_msg, cw, cmd0adr, debug=False):
 
             self.cw = CWTable(cw)
-            self.cnt_data = int(dlc/4)
+
+            # If Read Regs will get dlc = 2
+            self.cnt_data = int(dlc/4) if dlc != 2 else 1
+
             self.regs_values = {}
             self.status = None
 
-            def _fill_reg_inf(_cnt: int, _data, _my_t: AwesomeOrderedDict):
+            self.ERROR_FLG = False
+
+            def _fill_reg_inf(_cnt: int, _data, _my_t):
                 _result = []
-                _last_key = "None"
-                for _i in range(self.cnt_data):
+
+                try:
+                    _reg = _my_t.query(cmd0adr)
+                except ValueError as e:
+                    if int(cmd0adr, 2) <= 16:
+                        self.debug_msg += log_formatter("*** Warning ***",
+                                                        [("Key Not Found", "No Key in table , reserved ?")])
+                        return _result
+                    else:
+                        raise e
+
+                for _i in range(_cnt):
                     try:
-                        if _last_key == "None":
-                            _last_key = cmd0adr
+                        if _i != 0:
+                            _reg = _reg.next()
+                        raw_data = _data[_i]
+
+                        # Use float as Data format in these register
+                        if _reg in [DataRegTable.SPD, DataRegTable.ACC, DataRegTable.DEC, DataRegTable.CRA,
+                                    DataRegTable.CRN, DataRegTable.CRH, ]:
+                            _result.append([_reg.name, hex2float(raw_data)])
+                        # Use int as Data format in these register
+                        elif _reg in [DataRegTable.CID, DataRegTable.MCS]:
+                            _result.append([_reg.name, hex2int32(raw_data)])
+                        # Use Enum for Baud rate
+                        elif _reg == DataRegTable.BDR:
+                            try:
+                                _result.append([_reg.name, BaudRateDict[raw_data]])
+                            except KeyError as e:
+                                print("BaudRate Set Error", e)
+                                print(BaudRateDict)
+                                raise e
                         else:
-                            _last_key = _my_t.next_key(_last_key)
-                        _result.append(([_my_t[_last_key][0]], _data[_i]))
+                            _result.append([_reg.name, hex2int32(raw_data)])
                     except ValueError as e:
                         war_log = log_formatter("Warning", [("Message", e)])
                         print(war_log)
@@ -164,48 +211,67 @@ class CanFrame(object):
                 return _result
 
             def _fill_stat_value_inf(_data):
+
+                # 32bit and fill zero in left
+                _data = str(bin(int(_data, 16)))[2:].rjust(32, "0")
+
+                # Reverse this string because it count from right
+                _data = _data[::-1]
                 _result = []
-                for record in StatusValueTuple:
-                    _v = _data[record[0]]
-                    if _v == "1":
+                for record in StatusValueTable:
+                    _v = _data[record.value[0]]
+                    if record in SafeInf and _v == "1":
+                        self.ERROR_FLG = True
                         _result.append(
-                            [record[2], _v, record[-1]]
+                            [record.value[1], _v + " / " + record.value[2]]
                         )
                 return _result
 
             if self.cw == CWTable.R_Stat_Reg:
-                self.regs_values = _fill_reg_inf(_cnt=self.cnt_data, _data=data_msg, _my_t=StatusRegDict)
+                self.regs_values = _fill_reg_inf(_cnt=self.cnt_data, _data=data_msg, _my_t=StatusRegTable)
                 # Whatever you got , STATUS is the last one you got
-                if "STATUS" in self.regs_values.keys():
-                    self.status = _fill_stat_value_inf(data_msg[self.regs_values.__len__()-1])
-
-            elif self.cw == CWTable.R_Data_Reg or self.cw == CWTable.W_Data_Reg:
-                self.regs_values = _fill_reg_inf(_cnt=self.cnt_data, _data=data_msg, _my_t=DigitRegDict)
+                keys = [x[0] for x in self.regs_values]
+                if "STATUS" in keys and "SPD" not in keys:
+                    if "POS" in keys:
+                        self.status = _fill_stat_value_inf(data_msg[1])
+                    else:
+                        self.status = _fill_stat_value_inf(data_msg[0])
+            elif self.cw == CWTable.R_Data_Reg:
+                self.regs_values = _fill_reg_inf(_cnt=self.cnt_data, _data=data_msg, _my_t=DataRegTable)
+            elif self.cw == CWTable.W_Data_Reg:  # Write one register Once
+                self.regs_values = _fill_reg_inf(1, _data=data_msg, _my_t=DataRegTable)
             elif self.cw == CWTable.CMD:
                 self.command = CMDTable(cmd0adr)
 
+            self.debug_msg = log_formatter("Action", [("CW Means", self.cw.name)])
+            if self.cw in [CWTable.W_Data_Reg, CWTable.R_Data_Reg]:
+                self.debug_msg += log_formatter("Data Frame - Data Reg", self.regs_values)
+            elif self.cw == CWTable.CMD:
+                self.debug_msg += log_formatter("Data Frame", [("Command", self.command.name)])
+            else: #CWTable.R_Stat_Reg
+                keys = [x[0] for x in self.regs_values]
+                if "POS" in keys or "SPD" in keys:
+                    self.debug_msg += log_formatter("Data Frame - Stat Reg", self.regs_values)
+                if self.status is not None:
+                    if self.ERROR_FLG:
+                        self.debug_msg += log_formatter("STATUS", self.status)
+                    else:
+                        self.debug_msg += log_formatter("STATUS", [("0 ERROR", "0 WARNING")])
+            self.debug_msg += log_end()
             if debug:
-                debug_msg = log_formatter("Action", [("CW Means", self.cw.name)])
-                if self.cw != CWTable.CMD:
-                    debug_msg += log_formatter("Data Frame", self.regs_values)
-                else:
-                    debug_msg += log_formatter("Data Frame", [("Command",self.command.value)])
-                if self.status is not None :
-                    debug_msg += log_formatter("STATUS", self.status)
-                debug_msg += log_end()
-                print(debug_msg)
-            pass
+                print(self.debug_msg)
+
 
 
 def log_formatter(title, tcs):
-    result = "\033[1;32m%s \033[0m\n" % title
+    result = "| %s | \n" % title
     for tc in tcs:
-        result += "%-22s : \033[1;34m %s \033[0m\n" % (tc[0], tc[1])
+        result += "+ %-22s :  %s \n" % (tc[0], tc[1])
     return result
 
 
 def log_end():
-    return "\033[1;36m%s\033[0m\n" % ("*"*60)
+    return "%s\n" % ("*"*60)
 
 
 if __name__ == "__main__":

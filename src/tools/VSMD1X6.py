@@ -3,83 +3,83 @@ from collections import OrderedDict
 from ctypes import *
     #pointer, cast, c_int, c_float, POINTER
 from types import MappingProxyType, DynamicClassAttribute
-
+from typing import overload
 
 step_base = 200
-mm_per_loop = 8
-
-
-class AwesomeOrderedDict(OrderedDict):
-    """ OrderedDict With Next() and First()
-
-    Due to the data-format of DataFrame in RW register,
-    we can access register with a start ADR with frames
-
-    With Next() we can get next ADR of Register
-
-    ..note::
-        I can not access __map of OrderedDict that I use
-        keys() to fix.
-
-    """
-
-    def __init__(self, *a, **kw):
-        """
-        No explict init will cause no keys
-        :param a:
-        :param kw:
-        """
-        super().__init__(*a, **kw)
-        self.__list = list(self.keys())
-        self.name_key = {}
-        for _k, _v in self.items():
-            self.name_key[_v[0]] = _k
-
-    def next_key(self, key):
-        """Get next key in order
-
-        :param key:
-        :return:
-        :raise ValueError :
-            when we get a last key or the key is not in the dict
-        """
-        __index = self.__list.index(key)
-        if __index >= self.__list.__len__() - 1:
-            raise ValueError("{!r} is the last key".format(key))
-        __next = self.__list[__index + 1]
-        return __next
-
-    def get_key(self, t_name):
-        return self.name_key[t_name]
-
-    def first_key(self):
-        for key in self:
-            return key
-        raise ValueError("OrderedDict() is empty")
+mm_pp = 800
 
 
 class OhEnum(Enum):
+    """Specific class for 4-col Data of VSMD
 
-    def p(self):
-        if hasattr(self, "a"):
-            print("Fuck")
-        print(MappingProxyType(self._member_map_))
-        print(self.value)
-        pass
+            Name    :   Value   :   Description     :   Detail
+    Regs    RegName    Address      Meaning of Reg      DataFormat
+    Status  StaName    StatCode     Meaning of Sta      ValueMean
+    """
+
+    def next(self):
+        """ Get next <enum:X.value>
+
+        Example:
+            # >>> class Test(OhEnum):
+            # >>>     E_1 = "V1"
+            # >>>     E_2 = "V2"
+            # >>> Test.E_1.next()
+            # Test.E_2
+
+        :type : enum
+        :return: Next enum-element in order
+        """
+        if not hasattr(self, "_OhEnum__record"):
+            self.__init_record()
+        i = 0
+        for v in self.__record:
+            if self.name == v.name and i < self.__record.__len__()-1:
+                return self.__record[i+1]
+            i += 1
+        raise ValueError("{!r} is the last key".format(self.name))
 
     @classmethod
-    def t(cls):
-        print(cls.__members__)
+    def __init_record(cls):
+        """Init a list for query
 
-class Test(OhEnum):
-    X = 1
-    A = 2
-    Y = 0
-    Z = 3
+            Hashed Map can not afford this , so we need more space to do this
+        :return:
+        """
+        od = MappingProxyType(cls._member_map_)
+        cls.__record = list(od.values())
 
-a = Test.X
-a.p()
+    @classmethod
+    def query(cls, value, pos=0):
+        """Query this enum by value (Address or StatCode)
 
+        :type value: str
+        :param value: value in enum.value[0]
+
+        :type pos: int
+        :param pos: what should return
+
+        :return:
+            pos=0 : return enum (including name and value)
+            pos=1 : return name only
+            pos=2 : return Description only
+            pos=3 : return Detail only
+        """
+        if not hasattr(cls, "_OhEnum__record"):
+            cls.__init_record()
+        for v in cls.__record:
+            if v.value[0] == value:
+                if pos == 0:
+                    return v
+                elif pos == 1:
+                    return v.name
+                elif pos == 2:
+                    return v.value[1]
+                elif pos == 3:
+                    return v.value[2]
+                else:
+                    raise ValueError("Wrong Pos")
+        raise ValueError("Not recorded")
 
 
 class ExtIdTable(IntEnum):
@@ -129,88 +129,9 @@ class DeviceTable(Enum):
             BroadCast = "000000000"
             SliderX0 = "000000001"
             SliderX1 = "000000010"
-            SliderY = "000000011"
+            SliderY = "000000110"
             SliderZ = "000000101"
-            Pi = "000000110"
-
-
-StatusValueTuple = (
-    # Name index  Description         value 0      value 1
-    (0, "S1", "Status of Sensor 1", "low level", "high level"),
-    (1, "S2", "Status of Sensor 2", "low level", "high level"),
-    (2, "S3", "Status of Sensor 3", "low level", "high level"),
-    (3, "S4", "Status of Sensor 4", "low level", "high level"),
-    (4, "POS", "Cur Pos Equals Tar Pos", "Not Equal", "Equal"),
-    (5, "SPD", "Cur SPD Equals Tar SPD", "Not Equal", "Equal"),
-    (6, "FLT", "Hard ware Error (Need Reset)", "Normal", "Error"),
-    (7, "ORG", "Flag of origin", "Not at origin", "At origin"),
-    (8, "STP", "Flag of stop", "Not stop (running)", "Stopped"),
-    (9, "CMD_WRG", "Command Error (or Para out or range)", "CMD ok", "CMD Error"),
-    (10, "FLASH_ERR", "Flash Error(RW in Flash)", "Normal", "Error"),  # reading or writing Flash
-    (11, "ACTION", "Flag of offline action", "No offline action", "Offline action"),
-    (13, "PWR", "Flag or motor enable energy", "ENA", "OFF"),
-    (14, "ZERO", "Flag of end of the zeroing", "No zeroing/during zeroing", "zeroing end"),
-    (15, "S5", "Status of Sensor 5", "low level", "high level"),
-    (16, "S6", "Status of Sensor 6", "low level", "high level"),
-    (20, "OTS", "Over heat", "normal", "Over heating protection"),
-    (21, "OCP", "Over current", "normal", "Over current protection"),
-    (22, "UV", "Under Voltage", "normal", "Under voltage protection"),
-    (24, "ENC_ERR", "Encoding error(stall or encoder-error )", "normal", "error")
-)
-
-DigitRegDict = AwesomeOrderedDict({
-
-    # ADR        Description   Value and Detail
-    "0000000": ["Channel ID", "Determined by motor"],  # 0x00
-    "0000001": ["Baud Rate", "Default 132000"],  # 0x01
-    "0000010": ["Motor Control Subdivision",
-                "0 : one step \n1 : 1/2\n2 : 1/4\n3 : 1/8\n4: 1/16\n5 : 1/32\n"
-                "6 : 1/64 (Ser-045,13X,14X Only)\n7:1/128 (Ser-045,13X,14X Only)\n"
-                "8 : 1/256 (Ser-045,13X,14X Only)"],  # 0x02
-    "0000011": ["Target Speed", "(-192000,192000)pps"],  # 0x03
-    "0000100": ["Accelerate", "(0,192000000)pps/s"],  # 0x04
-    "0000101": ["Decelerate", "(0,192000000)pps/s"],  # 0x05
-    "0000110": ["Current Accelerate", "0-2.5A(Series-025)\n0-4.5A(Series-045)"],  # 0x06
-    "0000111": ["Current Normal", "0-2.5A(Series-025)\n0-4.5A(Series-045)"],  # 0x07
-    "0001000": ["Current Hold", "0-2.5A(Series-025)\n0-4.5A(Series-045)"],  # 0x08
-    "0001001": ["Function Settings for S1,S2", "See SensorValueTable"],  # 0x09
-    "0001010": ["Function Settings for S3,S4", "See SensorValueTable"],  # 0x0A
-    "0001011": ["Function Settings for S5,S6", "See SensorValueTable"],  # 0x0B
-    "0001100": ["Reserved", "Blank"],  # 0x0C
-    "0001101": ["Settings for S1-S6",
-                "0 : Input\n1:Output\nBit Definition\nBIT0 : Fixed Input for S1\nBIT1 : Fixed Input for S2\n"
-                "BIT2 : S3\nBIT3 : S4\nBIT4 : S5\nBIT5 : S6"],  # 0x0D
-    "0001110": ["Zeroing mode definition",
-                "0 : Zeroing off\n1 : Zeroing once\n2 : zeroing once + safe position\n3 : Double zeroing\n"
-                "4 : Double zeroing + safe position\n5 : Non-sense zeroing (Series-136/146)"],  # 0x0E
-    "0001111": ["Open zeroing Sensor level", "0 : low level\n1 : high level"],  # 0x0F
-    "0010000": ["Sensor Number of zeroing", "0 : S1\n1 : S2\n2 : S3\n3 : S4\n4 : S5\n5 : S6"],  # 0x10
-    "0010001": ["Zeroing's Speed", "Not Defined"],  # 0x11
-    "0010010": ["Zeroing's Safe-Position", "Not Defined"],  # 0x12
-    "0010011": ["Offline Mod", "0 : Normal mode\n1 : zeroing before offline"],  # 0x13
-    "0010100": ["Duration when online and no communication",
-                "0 : No auto running\n1-60 : time(sec)"],  # 0x14
-    "0010101": ["Reserved", "Blank"],  # 0x15
-    "0010110": ["Reserved", "Blank"],  # 0x16
-    "0010111": ["MSR_MSV_PSR_PSV",
-                        "MSR (Negative sensor)\n0 : No negative limit\n1 : S1\n2 : S2\n3 :S3\n4 : S4"
-                        "5 : S5\n6 : S6\nMSV (Negative trigger level)\n0 : low level\n1 : high level\n"
-                        "PSR (Positive Sensor)\n0 : 1 No positive\n1 : S1\n2 : S2\n3 : S3\n4 : S4\n5 : S5\n"
-                        "6 : S6\nPSV (Positive trigger level)\n0 : 1 low level\n1 : high level"],  # 0x17
-    "0011000": ["Power-on Attach Enable-energy", "0 : No auto ENA\n1 : Auto ENA"],  # 0x18
-    "0011001": ["Command Attach FAQ.", "0 : Not support\n1 : Support"],  # 0x19
-    "0011010": ["Zeroing After Power-on", "0 : No zeroing", "1: zeroing"],  # 0x1A
-    "0011011": ["subdivision of Non-sense zeroing", "Not defined"],  # 0x1B
-    "0011100": ["Current when Non-sense zeroing"],  # 0x1C
-    "0100000": ["Encoding Mod", "Encoding Mod Off", "Encoding Mod On"]  # 0x20
-})
-
-StatusRegDict = AwesomeOrderedDict({
-    "0000000": ["SPD", "Current Speed (float32)"],
-    "0000001": ["POS", "Current Position (int32)"],
-    "0000010": ["STATUS", "Status Code (u-int32)"],
-    "0001010": ["VSMD_Version", "VSMD116-025T-1.0.000.171010"]
-})
+            Pi = "000000011"
 
 
 class SensorValueTable(IntEnum):
@@ -257,28 +178,126 @@ class CWTable(Enum):
     CMD = "11"  # "Command"
 
 
-class BaudRateTable(Enum):
-    BDR_001C2132 = 20000
-    BDR_00168132 = 25000
-    BDR_0012C132 = 30000
-    BDR_000E1132 = 40000
-    BDR_0000B413 = 50000
-    BDR_00005A16 = 60000
-    BDR_00007813 = 75000
-    BDR_00004B15 = 80000
-    BDR_00004B14 = 90000
-    BDR_00005A13 = 100000
-    BDR_00004813 = 125000
-    BDR_00003C13 = 150000
-    BDR_00002D13 = 200000
-    BDR_00002413 = 250000
-    BDR_00001E13 = 300000
-    BDR_0000F153 = 400000
-    BDR_00012132 = 500000
-    BDR_00009163 = 600000
-    BDR_00008153 = 750000
-    BDR_00006163 = 900000
-    BDR_00009132 = 1000000
+BaudRateDict = {
+    "001C2132" : 20000,
+    "00168132" : 25000,
+    "0012C132" : 30000,
+    "000E1132" : 40000,
+    "0000B413" : 50000,
+    "00005A16" : 60000,
+    "00007813" : 75000,
+    "00004B15" : 80000,
+    "00004B14" : 90000,
+    "00005A13" : 100000,
+    "00004813" : 125000,
+    "00003C13" : 150000,
+    "00002D13" : 200000,
+    "00002413" : 250000,
+    "00001E13" : 300000,
+    "0000F153" : 400000,
+    "00012132" : 500000,
+    "00009163" : 600000,
+    "00008153" : 750000,
+    "00006163" : 900000,
+    "00009132" : 1000000,
+}
+
+
+class StatusValueTable(OhEnum):
+    """
+    For Detail, the former is 0 and another is 1
+
+    """
+
+    # StatName  Value Description     Detail
+    S1 = [0, "Status of Sensor 1", "0-low level/1-high level"]
+    S2 = [1, "Status of Sensor 2", "0-low level/1-high level"]
+    S3 = [2, "Status of Sensor 3", "0-low level/1-high level"]
+    S4 = [3, "Status of Sensor 4", "0-low level/1-high level"]
+    POS = [4, "Cur Pos Equals Tar Po s", "0-Not Equal/1-Equal"]
+    SPD = [5, "Cur SPD Equals Tar SP D", "0-Not Equal/1-Equal"]
+    FLT = [6, "Hard ware Error (Need  Reset)", "0-Normal/1-Error"]
+    ORG = [7, "Flag of origin", "0-Not  at origin/1-At origin"]
+    STP = [8, "Flag of stop", "0-Not s top (running)/1-Stopped"]
+    CMD_WRG = [9, "Command Error (or  Para out or range)", "0-CMD ok/1-CMD Error"]
+    FLASH_ERR = [10, "Flash Error(RW  in Flash)", "0-Normal/1-Error"]  # reading or writing Flash
+    ACTION = [11, "Flag of offline action", "0-No offline action/1-Offline action"]
+    PWR = [13, "Flag or motor enable energy", "0-ENA/1-OFF"]
+    ZERO = [14, "Flag of end of the zeroing", "0-No zeroing,during zeroing/1-zeroing end"]
+    S5 = [15, "Status of Sensor 5", "0-low level/1-high level"]
+    S6 = [16, "Status of Sensor 6", "0-low level/1-high level"]
+    OTS = [20, "Over heat", "0-normal/1-Over heating protection"]
+    OCP = [21, "Over current", "0-normal/1-Over current protection"]
+    UV = [22, "Under Voltage", "0-normal/1-Under voltage protection"]
+    ENC_ERR = [24, "Encoding error(stall or encoder-error )", "0-normal/1-error"]
+
+
+SafeInf = [
+    StatusValueTable.OTS, StatusValueTable.OCP, StatusValueTable.UV,
+    StatusValueTable.ENC_ERR, StatusValueTable.FLASH_ERR, StatusValueTable.FLT,
+    StatusValueTable.CMD_WRG
+]
+
+
+class DataRegTable(OhEnum):
+
+    # RegNae   ADR       Value              Detail
+    CID = ["0000000", "Channel ID", "Determined by motor"]  # 0x00
+    BDR = ["0000001", "Baud Rate", "Default 132000"]  # 0x01
+    MCS = ["0000010", "Motor Control Subdivision",
+                "0 : one step \n1 : 1/2\n2 : 1/4\n3 : 1/8\n4: 1/16\n5 : 1/32\n"
+                "6 : 1/64 (Ser-045,13X,14X Only)\n7:1/128 (Ser-045,13X,14X Only)\n"
+                "8 : 1/256 (Ser-045,13X,14X Only)"]  # 0x02
+    SPD = ["0000011", "Target Speed", "(-192000,192000)pps"]  # 0x03
+    ACC = ["0000100", "Accelerate", "(0,192000000)pps/s"]  # 0x04
+    DEC = ["0000101", "Decelerate", "(0,192000000)pps/s"]  # 0x05
+    CRA = ["0000110", "Current Accelerate", "0-2.5A(Series-025)\n0-4.5A(Series-045)"]  # 0x06
+    CRN = ["0000111", "Current Normal", "0-2.5A(Series-025)\n0-4.5A(Series-045)"]  # 0x07
+    CRH = ["0001000", "Current Hold", "0-2.5A(Series-025)\n0-4.5A(Series-045)"]  # 0x08
+    S1F_S1R_S2F_S2R = ["0001001","Function Settings for S1,S2", "See SensorValueTable"]  # 0x09
+    S3F_S3R_S4F_S4R = ["0001010","Function Settings for S3,S4", "See SensorValueTable"]  # 0x0A
+    S5F_S5R_S6F_S6R = ["0001011","Function Settings for S5,S6", "See SensorValueTable"]  # 0x0B
+    _R1 = ["0001100", "Reserved", "Blank"]  # 0x0C
+    S_CONFIG = ["0001101", "Settings for S1-S6",
+                "0 : Input\n1:Output\nBit Definition\nBIT0 : Fixed Input for S1\nBIT1 : Fixed Input for S2\n"
+                "BIT2 : S3\nBIT3 : S4\nBIT4 : S5\nBIT5 : S6"]  # 0x0D
+    ZMD = ["0001110", "Zeroing mode definition",
+                "0 : Zeroing off\n1 : Zeroing once\n2 : zeroing once + safe position\n3 : Double zeroing\n"
+                "4 : Double zeroing + safe position\n5 : Non-sense zeroing (Series-136/146)"]  # 0x0E
+    OSV = ["0001111", "Open zeroing Sensor level", "0 : low level\n1 : high level"]  # 0x0F
+    SNR = ["0010000", "Sensor Number of zeroing", "0 : S1\n1 : S2\n2 : S3\n3 : S4\n4 : S5\n5 : S6"]  # 0x10
+    ZSD = ["0010001", "Zeroing's Speed", "Not Defined"]  # 0x11
+    ZSP = ["0010010", "Zeroing's Safe-Position", "Not Defined"]  # 0x12
+    DMD = ["0010011", "Offline Mod", "0 : Normal mode\n1 : zeroing before offline"]  # 0x13
+    DAR = ["0010100", "Duration when online and no communication",
+                "0 : No auto running\n1-60 : time(sec)"]  # 0x14
+    _R2 = ["0010101", "Reserved", "Blank"]  # 0x15
+    _R3 = ["0010110", "Reserved", "Blank"]  # 0x16
+    MSR_MSV_PSR_PSV = ["0010111", "MSR_MSV_PSR_PSV",
+                        "MSR (Negative sensor)\n0 : No negative limit\n1 : S1\n2 : S2\n3 :S3\n4 : S4"
+                        "5 : S5\n6 : S6\nMSV (Negative trigger level)\n0 : low level\n1 : high level\n"
+                        "PSR (Positive Sensor)\n0 : 1 No positive\n1 : S1\n2 : S2\n3 : S3\n4 : S4\n5 : S5\n"
+                        "6 : S6\nPSV (Positive trigger level)\n0 : 1 low level\n1 : high level"]  # 0x17
+    PAE = ["0011000", "Power-on Attach Enable-energy", "0 : No auto ENA\n1 : Auto ENA"]  # 0x18
+    CAF = ["0011001", "Command Attach FAQ.", "0 : Not support\n1 : Support"]  # 0x19
+    ZAR = ["0011010", "Zeroing After Power-on", "0 : No zeroing\n1: zeroing"]  # 0x1A
+    SDS = ["0011011", "subdivision of Non-sense zeroing", "Not defined"]  # 0x1B
+    ZCR = ["0011100", "Current when Non-sense zeroing", "Not defined"]  # 0x1C
+    EMOD = ["0100000", "Encoding Mod", "Encoding Mod Off\nEncoding Mod On"]  # 0x20
+    ELNS = ["0100001", "Number of encoder lines", "10-10000"]  # 0x21
+    ESTP = ["0100010", "Full steps per lap", "10-10000"]  # 0x22
+    ERTY = ["0100011", "number of retries", "0-no-limit\n1-100retry times"]  # 0x23
+    EDIR = ["0100100", "Encoder direction", "0-backward\n1-forward"]  # 0x24
+    EZ = ["0100101", "Encoder sensitivity", "Not defined"]  # 0x25
+    EWR = ["0100110", "What to do when the retry limit is reached", "0-do nothing\n1-stop\n2-offline"]  # 0x26
+
+
+class StatusRegTable(OhEnum):
+    # RegName ADR       Description     Detail
+    SPD = ["0000000", "Current Speed ", "(float32)"]
+    POS = ["0000001", "Current Position ", "(int32)"]
+    STATUS = ["0000010", "Status Code ", "(u-int32)"]
+    VSMD_Version = ["0001010", "VSMD116-025T-1.0.000.171010", "None"]
 
 
 def hex2float(_hex):
@@ -287,10 +306,12 @@ def hex2float(_hex):
     fp = cast(cp, POINTER(c_float))  # cast the int pointer to a float pointer
     return fp.contents.value
 
+
 def float2hex(_f):
     cp = pointer(c_float(_f))
     fp = cast(cp, POINTER(c_int))
     return hex(fp.contents.value)
+
 
 def hex2int32(_hex):
     i = int(_hex, 16)
@@ -302,7 +323,7 @@ def hex2int32(_hex):
 class CommonCMD(object):
 
     @staticmethod
-    def easy_cmd(tar: DeviceTable, src: DeviceTable, cw: CWTable, cmd0reg, data):
+    def __easy_cmd(tar: DeviceTable, src: DeviceTable, cw: CWTable, cmd0reg, data):
         """
 
         :param tar:
@@ -325,35 +346,168 @@ class CommonCMD(object):
             return "00000000#0000000000000000"
         if cw == CWTable.W_Data_Reg:
             reg_name = cmd0reg
-            cmd0reg = DigitRegDict.get_key(cmd0reg)
-            if reg_name in ["Target Speed", "Accelerate", "Decelerate", "Current Accelerate",
-                            "Current Normal", "Current Hold"]:
-                data_frame = str(float2hex(data))[2:].ljust(16, "0")
-            elif reg_name in ["Channel ID", "Motor Control Subdivision"] :
-                data_frame = str(hex(data))[2:].ljust(16, "0")
+            cmd0reg = cmd0reg.value[0]
+            if reg_name in [DataRegTable.SPD, DataRegTable.ACC, DataRegTable.DEC, DataRegTable.CRA, DataRegTable.CRN,
+                            DataRegTable.CRH, ]:
+                data_frame = str(float2hex(data))[2:].rjust(16, "0")
+            elif reg_name in [DataRegTable.CID, DataRegTable.MCS]:
+                data_frame = str(hex(data))[2:].rjust(16, "0")
+            elif reg_name == DataRegTable.BDR:
+                data_frame = BaudRateDict[data]
             else:
                 print("Not Defined ! ")
-                data_frame = str(hex(data))[2:].ljust(16, "0")
+                data_frame = str(hex(data))[2:].rjust(16, "0")
         else: # CWTable.CMD
             if cmd0reg in [CMDTable.ENA, CMDTable.OFF]:
-                data_fame = "0"*16
+                data_frame = "0"*16
             elif cmd0reg in [CMDTable.STP]:
-                data_frame = str(hex(data))[2:].ljust(16, "0")
+                data_frame = str(hex(data))[2:].rjust(8, "0") + "0"*8
             elif cmd0reg in [CMDTable.MOV, CMDTable.POS, CMDTable.RMV]:
-                data_frame = str(float2hex(data))[2:].ljust(16, "0")
+                data_frame = str(float2hex(data))[2:].rjust(8, "0") + "0"*8
             elif cmd0reg in [CMDTable.READ_DATA_REGS, CMDTable.READ_STATUS_REGS]:
-                data_frame = str(hex(data[0]))[2:].ljust(2, "0") + str(hex(data[1]))[2:].ljust(2, "0") +"0"*12
-
+                data_frame = str(hex(int(data[0], 2)))[2:].rjust(2, "0") + str(hex(data[1]))[2:].rjust(2, "0") + "0"*12
+            else:
+                data_frame = "0"*16
 
             cmd0reg = cmd0reg.value
 
         ext_frame = "000" + tar.value + ("0" if tar != DeviceTable.BroadCast else "1") + src.value + cw.value + cmd0reg
-        print("Bin Ext:", ext_frame)
+        # print("Bin Ext:", ext_frame)
         ext_frame = str(hex(int(ext_frame, 2)))[2:].rjust(8, "0")
-        print("%s#%s"%(ext_frame, data_frame))
+        # print("%s#%s" % (ext_frame, data_frame))
 
-        pass
+        return "%s#%s" % (ext_frame, data_frame)
+        # return [ext_frame, data_frame]
 
+    @staticmethod
+    def enable_motor(device: str):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.ENA, data=0)
+        return cmd
 
-# CommonCMD.easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.SliderX0, cw=CWTable.CMD, cmd0reg=CMDTable.READ_STATUS_REGS, data=[0,1])
+    @staticmethod
+    def disable_motor(device: str):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.OFF, data=0)
+        return cmd
+
+    @staticmethod
+    def move_motor(device: str, speed: float):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=speed*mm_pp)
+        return cmd
+
+    @staticmethod
+    def stop_motor(device: str):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.STP, data=1)
+        return cmd
+
+    @staticmethod
+    def move_to(device: str, pos: float):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.POS, data=pos*mm_pp)
+        return cmd
+
+    @staticmethod
+    def move_dis(device: str, dis: float):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.RMV, data=dis*mm_pp)
+        return cmd
+
+    @staticmethod
+    def read_status_regs(device: str, reg: StatusRegTable, cnt: int):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.READ_STATUS_REGS,
+                                   data=[reg.value[0], cnt])
+        return cmd
+
+    @staticmethod
+    def read_data_regs(device: str, reg: DataRegTable, cnt: int):
+        device = device.upper()
+        tar = DeviceTable.SliderY
+        src = DeviceTable.Pi
+        if device == "X" or device == "XYZ" or device == "ALL":
+            # Turn off the YZ and control two Z
+            tar = DeviceTable.BroadCast
+        elif device == "Y":
+            tar = DeviceTable.SliderY
+        elif device == "Z":
+            tar = DeviceTable.SliderZ
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.READ_DATA_REGS,
+                                   data=[reg.value[0], cnt])
+        return cmd
+
+# CommonCMD.easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.SliderX0, cw=CWTable.CMD,
+#                    cmd0reg=CMDTable.READ_STATUS_REGS, data=[0, 1])
+# CommonCMD.easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.SliderX0, cw=CWTable.W_Data_Reg,
+#                    cmd0reg=DataRegTable.CRN, data=2.0)
 # print(hex2int32("00012132"))
+
+
+print(CommonCMD.move_motor("x", 8))
+
+
