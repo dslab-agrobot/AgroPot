@@ -63,7 +63,7 @@ class CanFrame(object):
         raw_dm = raw_dm.ljust(16, "0")
 
         self.debug_msg = log_end()
-        self.debug_msg += log_formatter("Main: ", [("Raw", str(hex(msg.arbitration_id))[2:].rjust(8, "0")+"#"+raw_dm),
+        self.debug_msg += log_formatter("Main: ", [("Raw", str(hex(message.arbitration_id))[2:].rjust(8, "0")+"#"+raw_dm),
             ("Sender", self.channel), ("Extent ID Frame", ext_msg), ("DLC", self.dlc), ("Data Frame", data_msg)
         ])
         if self.dlc % 2 != 0:
