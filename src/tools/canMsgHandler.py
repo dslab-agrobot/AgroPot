@@ -306,13 +306,24 @@ class CANFunctionList(object):
                    CommonCMD.disable_motor("Z"), CommonCMD.move_dis("ALL", distance), CommonCMD.disable_motor("X")]
         return cmd
 
-
+def str2canmsg(raw_cmd: str):
+    extid = hex(int(raw_cmd.split("#")[0], 16))
+    data_frame = []
+    datas = raw_cmd.split("#")[1]
+    for i in range(int(datas.__len__()/2) -1):
+        data_frame.append(int(datas[i*2:i*2 + 2], 16))
+    msg_snd = can.Message(arbitration_id=extid,
+                          data=data_frame,
+                          is_extended_id=True)
+    return msg_snd
 
 if __name__ == "__main__":
-    bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
-    cnt = 0
-    while True:
-        for msg in bus:
-            print("\n%2d\n" % cnt)
-            cnt += 1
-            can = CanFrame(msg, debug=True)
+    # bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
+    # cnt = 0
+    # while True:
+    #     for msg in bus:
+    #         print("\n%2d\n" % cnt)
+    #         cnt += 1
+    #         can = CanFrame(msg, debug=True)
+    msg = str2canmsg("00C0FFEE#001A2A0103010401")
+    print(msg.arbitration_id, msg.data)

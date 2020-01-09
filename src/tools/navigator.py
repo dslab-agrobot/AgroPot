@@ -45,7 +45,7 @@ class Navigator(object):
     def move_slider(self, direction: str, distance: int):
         for sub_cmd in canMsgHandler.CANFunctionList.move(direction=direction, distance=distance):
             if self.can_daemon.is_alive():
-                self.bus.send(sub_cmd)
+                self.bus.send(canMsgHandler.str2canmsg(sub_cmd))
             else:
                 raise ValueError("Can Daemon dead ! ")
 
