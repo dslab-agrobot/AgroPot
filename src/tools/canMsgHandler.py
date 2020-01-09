@@ -276,7 +276,7 @@ def log_end():
 
 class CanMsgListener(Process):
 
-    def __init__(self, channel="vcan0", bitrate=500000):
+    def __init__(self, channel="can0", bitrate=500000):
         super(CanMsgListener, self).__init__()
         self.channel = channel
         self.bitrate = bitrate
