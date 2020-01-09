@@ -50,9 +50,9 @@ class Navigator(object):
                 raise ValueError("Can Daemon dead ! ")
 
 
-
 def main():
-    pass
+    nav = Navigator()
+    nav.move_slider("X", 50)
 
 
 if __name__ == "__main__":
