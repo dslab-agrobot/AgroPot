@@ -326,4 +326,5 @@ if __name__ == "__main__":
     #         cnt += 1
     #         can = CanFrame(msg, debug=True)
     msg = str2canmsg("00C0FFEE#001A2A0103010401")
-    print(msg.arbitration_id, msg.data)
+    print(type(msg.arbitration_id))
+    can = CanFrame(msg, debug=True)
