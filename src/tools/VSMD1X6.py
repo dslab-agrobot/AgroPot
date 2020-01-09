@@ -513,4 +513,3 @@ class CommonCMD(object):
 # print(CommonCMD.move_motor("x", 8))
 # print(CommonCMD._CommonCMD__easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.Pi, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=16*mm_pp))
 
-DeviceTable("fu")
