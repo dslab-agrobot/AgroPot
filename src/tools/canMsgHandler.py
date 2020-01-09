@@ -1,37 +1,7 @@
 import can
 import time
 from VSMD1X6 import *
-
-
-def init_buses(cfgs):
-    """Initialize CAN-buses in software
-    
-    Initialize the cab-buses first then you can use buses 
-    to send or recieve messages
-    
-    :type cfgs: Array with cuple like (channel,bitrate)
-    :param cfgs: List of CAN-BUS configure
-    
-    :return: buses
-
-    :raise can.CanError
-        if the initialization failed
-
-    .. note::
-
-        This method will just finish the set-up in software that assume you
-        have complete your hardware installation
-
-    """
-    busses = []
-
-    for cfg in cfgs:
-        try:
-            busses.append(can.interface.Bus(bustype='socketcan', channel=cfg[0], bitrate=cfg[1]))
-        except can.CanError as e:
-            print("CAN bus init failed in %s , "%cfg , e)
-
-    return busses
+from multiprocessing import Process
 
 
 class CanFrame(object):
@@ -102,6 +72,9 @@ class CanFrame(object):
             print(self.debug_msg)
 
         self.ext_frame = self.CanExtFrame(ext_msg, debug=debug)
+
+        if self.ext_frame.DEVICE_ERR_FLG:
+            return
         
         self.data_frame = self.CanDataFrame(data_msg=data_msg, dlc=self.dlc, cw=self.ext_frame.cw,
                                             cmd0adr=self.ext_frame.cmd0regAdr, debug=debug)
@@ -133,16 +106,21 @@ class CanFrame(object):
             """
             self.ERROR_FLG = False
 
+            self.DEVICE_ERR_FLG = False
+
             #: msg.arbitration_id is int , we need a string type of bin-array
             self._extID = ext_msg
 
             self._target_id = self._extID[ExtIdTable.target_id_0:ExtIdTable.target_id_1]
 
-            self.target_device = DeviceTable(self._target_id)
-
             self._source_id = self._extID[ExtIdTable.source_id_0:ExtIdTable.source_id_1]
 
-            self.source_device = DeviceTable(self._source_id)
+            try:
+                self.target_device = DeviceTable(self._target_id)
+                self.source_device = DeviceTable(self._source_id)
+            except ValueError as e:
+                self.DEVICE_ERR_FLG = True
+                return
 
             self.cw = self._extID[ExtIdTable.C0:ExtIdTable.C1 + 1]
 
@@ -250,7 +228,27 @@ class CanFrame(object):
             if self.cw in [CWTable.W_Data_Reg, CWTable.R_Data_Reg]:
                 self.debug_msg += log_formatter("Data Frame - Data Reg", self.regs_values)
             elif self.cw == CWTable.CMD:
-                self.debug_msg += log_formatter("Data Frame", [("Command", self.command.name)])
+                data_frame = []
+                if self.command in [CMDTable.ENA, CMDTable.OFF]:
+                    pass
+                elif self.command in [CMDTable.STP]:
+                    data_frame.append((self.command.name, int(data_msg[0], 16)))
+                elif self.command in [CMDTable.MOV, CMDTable.POS, CMDTable.RMV]:
+                    print(data_msg[0])
+                    data_frame.append((self.command.name, hex2float(data_msg[0])))
+                elif self.command == CMDTable.READ_DATA_REGS:
+                    d1 = data_msg[0][:2]
+                    d2 = data_msg[0][2:4]
+                    data_frame.append(("Data Reg Start:", DataRegTable(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg count:", int(d2, 16)))
+                elif self.command == CMDTable.READ_STATUS_REGS:
+                    d1 = data_msg[0][:2]
+                    d2 = data_msg[0][2:4]
+                    data_frame.append(("Data Reg Start:", StatusRegTable(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg count:", int(d2, 16)))
+                else:
+                    data_frame.append((self.command.name, int(data_msg, 16)))
+                self.debug_msg += log_formatter("Data Frame", [("Command", data_frame)])
             else: #CWTable.R_Stat_Reg
                 keys = [x[0] for x in self.regs_values]
                 if "POS" in keys or "SPD" in keys:
@@ -265,7 +263,6 @@ class CanFrame(object):
                 print(self.debug_msg)
 
 
-
 def log_formatter(title, tcs):
     result = "| %s | \n" % title
     for tc in tcs:
@@ -275,6 +272,40 @@ def log_formatter(title, tcs):
 
 def log_end():
     return "%s\n" % ("*"*60)
+
+
+class CanMsgListener(Process):
+
+    def __init__(self, channel="vcan0", bitrate=500000):
+        super(CanMsgListener, self).__init__()
+        self.channel = channel
+        self.bitrate = bitrate
+        self.debug_msg = ""
+        self.cnt = 0
+
+    def run(self):
+        _bus = can.interface.Bus(bustype='socketcan', channel=self.channel, bitrate=self.bitrate)
+        while True:
+            for _msg in _bus:
+                self.cnt += 1
+                canframe = CanFrame(_msg, debug=False)
+                if canframe.ERROR_FLG == True:
+                    self.debug_msg = canframe.debug_msg
+                    print(canframe.debug_msg)
+                    self.terminate()
+
+
+class CANFunctionList(object):
+
+    @staticmethod
+    def move(direction: str, distance: int):
+        direction = direction.upper()
+        cmd = []
+        if direction == "X":
+            cmd = [CommonCMD.enable_motor("ALL"), CommonCMD.disable_motor("Y"),
+                   CommonCMD.disable_motor("Z"), CommonCMD.move_dis("ALL", distance), CommonCMD.disable_motor("X")]
+        return cmd
+
 
 
 if __name__ == "__main__":

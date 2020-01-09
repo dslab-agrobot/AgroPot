@@ -128,9 +128,9 @@ class DeviceTable(Enum):
             # Target device only
             BroadCast = "000000000"
             SliderX0 = "000000001"
-            SliderX1 = "000000010"
-            SliderY = "000000110"
-            SliderZ = "000000101"
+            SliderX1 = "100000010"
+            SliderY = "100000110"
+            SliderZ = "100000101"
             Pi = "000000011"
 
 
@@ -384,7 +384,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -399,7 +399,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -414,7 +414,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -429,7 +429,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -444,7 +444,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -459,7 +459,7 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
+        if device == "ALL":
             # Turn off the YZ and control two Z
             tar = DeviceTable.BroadCast
         elif device == "Y":
@@ -474,9 +474,10 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
-            # Turn off the YZ and control two Z
-            tar = DeviceTable.BroadCast
+        if device == "X0":
+            tar = DeviceTable.SliderX0
+        if device == "X1":
+            tar = DeviceTable.SliderX1
         elif device == "Y":
             tar = DeviceTable.SliderY
         elif device == "Z":
@@ -490,9 +491,10 @@ class CommonCMD(object):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
-        if device == "X" or device == "XYZ" or device == "ALL":
-            # Turn off the YZ and control two Z
-            tar = DeviceTable.BroadCast
+        if device == "X0":
+            tar = DeviceTable.SliderX0
+        if device == "X1":
+            tar = DeviceTable.SliderX1
         elif device == "Y":
             tar = DeviceTable.SliderY
         elif device == "Z":
@@ -508,6 +510,7 @@ class CommonCMD(object):
 # print(hex2int32("00012132"))
 
 
-print(CommonCMD.move_motor("x", 8))
+# print(CommonCMD.move_motor("x", 8))
+# print(CommonCMD._CommonCMD__easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.Pi, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=16*mm_pp))
 
-
+DeviceTable("fu")
