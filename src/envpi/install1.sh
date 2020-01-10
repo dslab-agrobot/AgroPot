@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # we have only one can-module in pi
 sudo ip link set can0 type can bitrate 500000 restart-ms 100
