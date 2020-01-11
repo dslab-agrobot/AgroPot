@@ -32,6 +32,9 @@ class CanFrame(object):
         # Data Length Code , Every two 0x para get 1 DLC
         self.dlc = message.dlc
 
+        if type(message.arbitration_id) == str:
+            message.arbitration_id = int(message.arbitration_id, 16)
+
         # :type message.arbitration_id : int
         # Convert this int to bin and use string to storage
         ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
@@ -85,8 +88,6 @@ class CanFrame(object):
                 debug_msg = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n" + debug_msg + "\n"
                 file.write(debug_msg)
 
-
-
     class CanExtFrame(object):
         """CAN Extend Identifier Frame
 
@@ -120,7 +121,8 @@ class CanFrame(object):
                 self.source_device = DeviceTable(self._source_id)
             except ValueError as e:
                 self.DEVICE_ERR_FLG = True
-                return
+                print(self._target_id, self._source_id, e)
+                # return
 
             self.cw = self._extID[ExtIdTable.C0:ExtIdTable.C1 + 1]
 
@@ -131,6 +133,7 @@ class CanFrame(object):
                 ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) !=
                 CWTable.CMD else CMDTable(self.cmd0regAdr).name)
             ])
+
             if debug:
                 print(self.debug_msg)
 
@@ -234,17 +237,16 @@ class CanFrame(object):
                 elif self.command in [CMDTable.STP]:
                     data_frame.append((self.command.name, int(data_msg[0], 16)))
                 elif self.command in [CMDTable.MOV, CMDTable.POS, CMDTable.RMV]:
-                    print(data_msg[0])
                     data_frame.append((self.command.name, hex2float(data_msg[0])))
                 elif self.command == CMDTable.READ_DATA_REGS:
                     d1 = data_msg[0][:2]
                     d2 = data_msg[0][2:4]
-                    data_frame.append(("Data Reg Start:", DataRegTable(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg Start:", DataRegTable.query(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
                     data_frame.append(("Data Reg count:", int(d2, 16)))
                 elif self.command == CMDTable.READ_STATUS_REGS:
                     d1 = data_msg[0][:2]
                     d2 = data_msg[0][2:4]
-                    data_frame.append(("Data Reg Start:", StatusRegTable(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg Start:", StatusRegTable.query(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
                     data_frame.append(("Data Reg count:", int(d2, 16)))
                 else:
                     data_frame.append((self.command.name, int(data_msg, 16)))
@@ -298,33 +300,41 @@ class CanMsgListener(Process):
 class CANFunctionList(object):
 
     @staticmethod
-    def move(direction: str, distance: int):
+    def move(direction: str, distance: int, bus: can.interface.Bus):
         direction = direction.upper()
-        cmd = []
         if direction == "X":
-            cmd = [CommonCMD.enable_motor("ALL"), CommonCMD.disable_motor("Y"),
-                   CommonCMD.disable_motor("Z"), CommonCMD.move_dis("ALL", distance), CommonCMD.disable_motor("X")]
-        return cmd
+            time_estimate = abs(1.0 * distance/spd)
+            for cmd in [CommonCMD.enable_motor("ALL"), CommonCMD.disable_motor("Y"),
+                   CommonCMD.disable_motor("Z"), CommonCMD.move_dis("ALL", distance)]:
+                print(cmd)
+                bus.send(str2canmsg(cmd))
+            time.sleep(time_estimate + 1)
+            bus.send(str2canmsg(CommonCMD.disable_motor("ALL")))
+
+
+
+
 
 def str2canmsg(raw_cmd: str):
-    extid = hex(int(raw_cmd.split("#")[0], 16))
+    extid = int(raw_cmd.split("#")[0], 16)
     data_frame = []
     datas = raw_cmd.split("#")[1]
-    for i in range(int(datas.__len__()/2) -1):
+    for i in range(int(datas.__len__()/2)):
         data_frame.append(int(datas[i*2:i*2 + 2], 16))
-    msg_snd = can.Message(arbitration_id=extid,
+    msg_snd = can.Message(arbitration_id=extid, channel="can0",
                           data=data_frame,
                           is_extended_id=True)
     return msg_snd
 
 if __name__ == "__main__":
-    # bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
-    # cnt = 0
-    # while True:
-    #     for msg in bus:
-    #         print("\n%2d\n" % cnt)
-    #         cnt += 1
-    #         can = CanFrame(msg, debug=True)
-    msg = str2canmsg("00C0FFEE#001A2A0103010401")
-    print(type(msg.arbitration_id))
-    can = CanFrame(msg, debug=True)
+    pass
+    bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate=500000)
+    cnt = 0
+    while True:
+        for msg in bus:
+            print("\n%2d\n" % cnt)
+            cnt += 1
+            can = CanFrame(msg, debug=True)
+    # msg = str2canmsg("0004079F#002F")
+    # print(type(msg.arbitration_id))
+    # can = CanFrame(msg, debug=True)

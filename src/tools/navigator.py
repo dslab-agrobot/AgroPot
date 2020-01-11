@@ -14,6 +14,7 @@ Project_PATH = "/home/pi/"
 import can
 import canMsgHandler
 from os.path import join as pj
+import time
 from multiprocessing import Process,JoinableQueue
 import subprocess
 
@@ -43,16 +44,22 @@ class Navigator(object):
         proc.wait()
 
     def move_slider(self, direction: str, distance: int):
-        for sub_cmd in canMsgHandler.CANFunctionList.move(direction=direction, distance=distance):
-            if self.can_daemon.is_alive():
-                proc = subprocess.Popen(['cansend', 'can0', sub_cmd])
-            else:
-                raise ValueError("Can Daemon dead ! ")
+        if self.can_daemon.is_alive():
+            canMsgHandler.CANFunctionList.move(direction=direction, distance=distance, bus=self.bus)
+
+        # for sub_cmd in canMsgHandler.CANFunctionList.move(direction=direction, distance=distance):
+        #     if self.can_daemon.is_alive():
+        #         print(sub_cmd)
+        #         # msg = canMsgHandler.str2canmsg(sub_cmd)
+        #         proc = subprocess.Popen(['cansend', 'can0', sub_cmd])
+        #         time.sleep(0.1)
+        #     else:
+        #         raise ValueError("Can Daemon dead ! ")
 
 
 def main():
     nav = Navigator()
-    nav.move_slider("X", 50)
+    nav.move_slider("X", 90)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from typing import overload
 
 step_base = 200
 mm_pp = 800
+spd = 0.5
 
 
 class OhEnum(Enum):
@@ -128,10 +129,11 @@ class DeviceTable(Enum):
             # Target device only
             BroadCast = "000000000"
             SliderX0 = "000000001"
-            SliderX1 = "100000010"
-            SliderY = "100000110"
-            SliderZ = "100000101"
+            SliderX1 = "000000010"
+            SliderY = "000000100"
+            SliderZ = "000000101"
             Pi = "000000011"
+            UnKnow = "111111111"
 
 
 class SensorValueTable(IntEnum):
@@ -307,10 +309,23 @@ def hex2float(_hex):
     return fp.contents.value
 
 
-def float2hex(_f):
+def float2hex(_f: float):
     cp = pointer(c_float(_f))
     fp = cast(cp, POINTER(c_int))
-    return hex(fp.contents.value)
+    if _f >= 0:
+        return hex(fp.contents.value)
+    else:
+        return hex(int(fp.contents.value) & 0xFFFFFFFF)
+
+
+def int2hex(_i):
+    if type(_i) == str:
+        _i = int(_i)
+
+    if _i >= 0:
+        return hex(_i)
+    else:
+        return hex(_i & 0xFFFFFFFF)
 
 
 def hex2int32(_hex):
@@ -351,29 +366,31 @@ class CommonCMD(object):
                             DataRegTable.CRH, ]:
                 data_frame = str(float2hex(data))[2:].rjust(16, "0")
             elif reg_name in [DataRegTable.CID, DataRegTable.MCS]:
-                data_frame = str(hex(data))[2:].rjust(16, "0")
+                data_frame = str(int2hex(data))[2:].rjust(16, "0")
             elif reg_name == DataRegTable.BDR:
                 data_frame = BaudRateDict[data]
             else:
                 print("Not Defined ! ")
-                data_frame = str(hex(data))[2:].rjust(16, "0")
+                data_frame = str(int2hex(data))[2:].rjust(16, "0")
         else: # CWTable.CMD
             if cmd0reg in [CMDTable.ENA, CMDTable.OFF]:
-                data_frame = "0"*16
+                data_frame = "0"*0  # dlc = 0
             elif cmd0reg in [CMDTable.STP]:
-                data_frame = str(hex(data))[2:].rjust(8, "0") + "0"*8
-            elif cmd0reg in [CMDTable.MOV, CMDTable.POS, CMDTable.RMV]:
-                data_frame = str(float2hex(data))[2:].rjust(8, "0") + "0"*8
+                data_frame = str(int2hex(data))[2:].rjust(4, "0")   # dlc = 2
+            elif cmd0reg == CMDTable.MOV:
+                data_frame = str(float2hex(data))[2:].rjust(8, "0")  # dlc = 4
+            elif cmd0reg in [CMDTable.POS, CMDTable.RMV]:
+                data_frame = str(int2hex(data))[2:].rjust(8, "0")  # dlc = 4
             elif cmd0reg in [CMDTable.READ_DATA_REGS, CMDTable.READ_STATUS_REGS]:
-                data_frame = str(hex(int(data[0], 2)))[2:].rjust(2, "0") + str(hex(data[1]))[2:].rjust(2, "0") + "0"*12
+                data_frame = str(int2hex(int(data[0], 2)))[2:].rjust(2, "0") + str(int2hex(data[1]))[2:].rjust(2, "0")  # dlc = 4
             else:
-                data_frame = "0"*16
+                data_frame = "0"*16  # dlc = 8
 
             cmd0reg = cmd0reg.value
 
         ext_frame = "000" + tar.value + ("0" if tar != DeviceTable.BroadCast else "1") + src.value + cw.value + cmd0reg
         # print("Bin Ext:", ext_frame)
-        ext_frame = str(hex(int(ext_frame, 2)))[2:].rjust(8, "0")
+        ext_frame = str(int2hex(int(ext_frame, 2)))[2:].rjust(8, "0")
         # print("%s#%s" % (ext_frame, data_frame))
 
         return "%s#%s" % (ext_frame, data_frame)
@@ -410,7 +427,7 @@ class CommonCMD(object):
         return cmd
 
     @staticmethod
-    def move_motor(device: str, speed: float):
+    def move_motor(device: str, speed: int):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
@@ -421,7 +438,7 @@ class CommonCMD(object):
             tar = DeviceTable.SliderY
         elif device == "Z":
             tar = DeviceTable.SliderZ
-        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=speed*mm_pp)
+        cmd = CommonCMD.__easy_cmd(tar=tar, src=src, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=int(speed*mm_pp))
         return cmd
 
     @staticmethod
@@ -440,7 +457,7 @@ class CommonCMD(object):
         return cmd
 
     @staticmethod
-    def move_to(device: str, pos: float):
+    def move_to(device: str, pos: int):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
@@ -455,7 +472,7 @@ class CommonCMD(object):
         return cmd
 
     @staticmethod
-    def move_dis(device: str, dis: float):
+    def move_dis(device: str, dis: int):
         device = device.upper()
         tar = DeviceTable.SliderY
         src = DeviceTable.Pi
@@ -509,7 +526,12 @@ class CommonCMD(object):
 #                    cmd0reg=DataRegTable.CRN, data=2.0)
 # print(hex2int32("00012132"))
 
+# print(float2hex(-12800.0))
+# print(CommonCMD.enable_motor("ALL"))
+# print(CommonCMD.move_motor("ALL", -16))
+# print(CommonCMD.disable_motor("ALL"))
+# print(CommonCMD.move_dis("ALL", -10))
+# print(CommonCMD.read_data_regs("X0", DataRegTable.SPD, 1))
 
-# print(CommonCMD.move_motor("x", 8))
 # print(CommonCMD._CommonCMD__easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.Pi, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=16*mm_pp))
 
