@@ -9,84 +9,165 @@ class CanFrame(object):
 
     Use message in socket-can-bus to initialize,
     """
+    class CANWarning(Enum):
+        DlcCountWarring = 1
+
+    class CANError(Enum):
+        ExtTarIdNotFound = 101
+        ExtSrcIdNotFound = 102
+        DataStatusError = 103
+
+    class _DataConverter(object):
+        @staticmethod
+        def hex2float(value):
+            i = int(value, 16)  # convert from hex to a Python int
+            cp = pointer(c_int(i))  # make this into a c integer
+            fp = cast(cp, POINTER(c_float))  # cast the int pointer to a float pointer
+            return fp.contents.value
+
+        @staticmethod
+        def float2hex(value: float):
+            cp = pointer(c_float(value))
+            fp = cast(cp, POINTER(c_int))
+            if value >= 0:
+                return hex(fp.contents.value)
+            else:
+                return hex(int(fp.contents.value) & 0xFFFFFFFF)
+
+        @staticmethod
+        def int2hexstr(value, length):
+            if type(value) == str:
+                value = int(value)
+
+            if value >= 0:
+                value = hex(value)
+            else:
+                # Covert a signed hex number to a un-singed hex number
+                value = hex(value & 0xFFFFFFFF)
+            return value.rjust(length, "0")
+
+        @staticmethod
+        def hexstr2int(value):
+            return int(value, 16)
+
+        @staticmethod
+        def hexstr2bin(value, length):
+            return str(bin(int(value, 16)))[2:].rjust(length, "0")
+
+        @staticmethod
+        def byte2hexstr(value):
+            return str(hex(value))[2:].rjust(2, "0")
+
+        @staticmethod
+        def int2binstr(value, length):
+            if type(value) == str:
+                value = int(value)
+            return str(bin(value))[2:].rjust(length, "0")
 
     def __init__(self, message, debug=False):
         """Decode raw message and send them to sub-frame
-        
+
         :param message: message in socket can bus
         :param debug: print some log in decoding message
-        
+
         .. note:
             This class write for CAN2.0 , which has 29-bitwise-ExtendId
-            and 8-bytes-dataFrame 
-            
+            and 8-bytes-dataFrame
+
         .. note:
             DO NOT try to use para in protect level (like: _extID) if you
             have no idea what you are really doing with CAN Frame
-        
+
         """
 
         # can device : can0 , vcan0
         self.channel = message.channel
 
-        # Data Length Code , Every two 0x para get 1 DLC
+        # Data Length Code , Every two hex equals 1 DLC
         self.dlc = message.dlc
 
+        # Errors in this CAN Frame
+        # Note, the convert procedure will not be terminated when
+        # error occurs. It will just record all of them for debugging
+        self.errors = []
+
+        self.warnings = []
+
+        # message.arbitration_id will be str or int , so we need to
+        # convert it to int that we can use bin() to covert
         if type(message.arbitration_id) == str:
-            message.arbitration_id = int(message.arbitration_id, 16)
+            message.arbitration_id = self._DataConverter.hexstr2int(message.arbitration_id)
 
         # :type message.arbitration_id : int
         # Convert this int to bin and use string to storage
-        ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
+        ext_msg = self._DataConverter.int2binstr(message.arbitration_id, 29)
 
         # :type [str,]
+        # Have 0 , 1 or 2 set , 4 DLC mix a sub data_msg
         data_msg = []
 
-        self.ERROR_FLG = False
 
         # :type message.data : bytearray
         # Each element convert to an int in bytearray iteration
+        # Note That DLC can be 0,1,2...8,
         i = 0
         for t_int in message.data:
             # Every two dlc data get 32-bit , which can be used for a register
             if i % 4 == 0:
-                data_msg.append(str(hex(t_int))[2:].rjust(2, "0"))
+                data_msg.append(self._DataConverter.byte2hexstr(t_int))
             else:
                 f_i = int(i/4)
-                data_msg[f_i] += str(hex(t_int))[2:].rjust(2, "0")
-                # What the data mean dues to what reg it is
-                # so we reserve the 0x number
-                # print(hex2float(data_msg[f_i]))
-                # data_msg[f_i] = str(int(data_msg[f_i], 16))
+                data_msg[f_i] += self._DataConverter.byte2hexstr(t_int)
+
             i += 1
 
+        # Formatted Raw Data message , set for debug
         raw_dm = ""
-        for dm in data_msg:
-            raw_dm += dm.ljust(8, "0")
-        raw_dm = raw_dm.ljust(16, "0")
+        for i in range(data_msg.__len__()):
+            # Make sure that each sub data_msg len 8 hex
+            data_msg[i] = data_msg[i].ljust(8, "0").upper()
+            raw_dm += data_msg[i]
 
-        self.debug_msg = log_end()
-        self.debug_msg += log_formatter("Main: ", [("Raw", str(hex(message.arbitration_id))[2:].rjust(8, "0")+"#"+raw_dm),
-            ("Sender", self.channel), ("Extent ID Frame", ext_msg), ("DLC", self.dlc), ("Data Frame", data_msg)
-        ])
+        self.debug_msg = self.log_end()
+        self.debug_msg += self.log_formatter(
+            "Raw CAN Frame: ",
+            [("Raw", self._DataConverter.int2hexstr(message.arbitration_id, 8) + "#"+raw_dm),
+             ("Sender", self.channel),
+             ("Extent ID Frame", ext_msg),
+             ("DLC", self.dlc),
+             ("Data Frame", data_msg)]
+        )
+
         if self.dlc % 2 != 0:
-            self.debug_msg += log_formatter("*** Warning ***", [("DLC Count warning", "DLC count should not be ODD")])
+            self.errors.append([self.CANWarning.DlcCountWarring, "DLC of this frame is %d" % self.dlc])
         if debug:
             print(self.debug_msg)
 
         self.ext_frame = self.CanExtFrame(ext_msg, debug=debug)
 
-        if self.ext_frame.DEVICE_ERR_FLG:
-            return
-        
+        # if self.ext_frame.DEVICE_ERR_FLG:
+        #     return
+
         self.data_frame = self.CanDataFrame(data_msg=data_msg, dlc=self.dlc, cw=self.ext_frame.cw,
                                             cmd0adr=self.ext_frame.cmd0regAdr, debug=debug)
-
-        if self.ERROR_FLG or self.ext_frame.ERROR_FLG or self.data_frame.ERROR_FLG:
-            debug_msg = self.debug_msg + self.ext_frame.debug_msg + self.data_frame.debug_msg
+        if not self.errors and not self.ext_frame.errors and not self.data_frame.errors:
+            self.ERROR_FLG = False
+        else:
+            self.ERROR_FLG = True
+            error_list = []
+            for el in self.errors + self.ext_frame.errors + self.data_frame.errors:
+                error_list.append(("%s : %d " % (el[0].name, el[0].value), el[1]))
+            _debug_msg = CanFrame.log_formatter(
+                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                error_list)
             with open("/home/pi/log.txt", "a+") as file:
-                debug_msg = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n" + debug_msg + "\n"
-                file.write(debug_msg)
+                file.write(_debug_msg)
+
+        # if self.ERROR_FLG or self.ext_frame.ERROR_FLG or self.data_frame.ERROR_FLG:
+        #     debug_msg = self.debug_msg + self.ext_frame.debug_msg + self.data_frame.debug_msg
+        #     with open("/home/pi/log.txt", "a+") as file:
+        #         debug_msg = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n" + debug_msg + "\n"
+        #         file.write(debug_msg)
 
     class CanExtFrame(object):
         """CAN Extend Identifier Frame
@@ -105,12 +186,16 @@ class CanFrame(object):
                         Message.dlc means the count of data, which may be used for error checking (I AM NOT SHURE)
 
             """
-            self.ERROR_FLG = False
-
-            self.DEVICE_ERR_FLG = False
 
             #: msg.arbitration_id is int , we need a string type of bin-array
             self._extID = ext_msg
+
+            # Errors in this CAN EXT Frame
+            # Note, the convert procedure will not be terminated when
+            # error occurs. It will just record all of them for debugging
+            self.errors = []
+
+            self.warnings = []
 
             self._target_id = self._extID[ExtIdTable.target_id_0:ExtIdTable.target_id_1]
 
@@ -118,20 +203,27 @@ class CanFrame(object):
 
             try:
                 self.target_device = DeviceTable(self._target_id)
+            except ValueError as e:
+                self.errors.append([CanFrame.CANError.ExtTarIdNotFound,
+                                    "Target ID (%s) in EXT frame not found \n %s" %
+                                    (self._target_id, e)])
+
+            try:
                 self.source_device = DeviceTable(self._source_id)
             except ValueError as e:
-                self.DEVICE_ERR_FLG = True
-                print(self._target_id, self._source_id, e)
-                # return
+                self.errors.append([CanFrame.CANError.ExtSrcIdNotFound,
+                                    "Source ID (%s) in EXT frame not found \n %s" %
+                                    (self._source_id, e)])
 
             self.cw = self._extID[ExtIdTable.C0:ExtIdTable.C1 + 1]
 
             self.cmd0regAdr = self._extID[ExtIdTable.CMD0REG_0:]
 
-            self.debug_msg = log_formatter("Extend ID Frame", [
-                ("Source Device", self.source_device.name), ("Target Device", self.target_device.name),
-                ("Command Word", self.cw), ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) !=
-                CWTable.CMD else CMDTable(self.cmd0regAdr).name)
+            self.debug_msg = CanFrame.log_formatter(
+                "Extend ID Frame",
+                [("Source Device", self.source_device.name), ("Target Device", self.target_device.name),
+                 ("Command Word", self.cw),
+                 ("CMD or Register ADR", self.cmd0regAdr if CWTable(self.cw) != CWTable.CMD else CMDTable(self.cmd0regAdr).name)
             ])
 
             if debug:
@@ -149,21 +241,29 @@ class CanFrame(object):
             self.regs_values = {}
             self.status = None
 
-            self.ERROR_FLG = False
+            # Errors in this CAN Frame
+            # Note, the convert procedure will not be terminated when
+            # error occurs. It will just record all of them for debugging
+            self.errors = []
+
+            self.warnings = []
+
             self.debug_msg = ""
 
+            # 1.StatusRegister 2.StatusInStatReg 3.DataRegister
             def _fill_reg_inf(_cnt: int, _data, _my_t):
                 _result = []
 
                 try:
+                    # Query which register to start
                     _reg = _my_t.query(cmd0adr)
                 except ValueError as e:
-                    if _my_t is StatusRegTable and int(cmd0adr, 2) <= 16:
-                        self.debug_msg += log_formatter("*** Warning ***",
-                                                        [("Key Not Found", "No Key in table , reserved ?")])
-                        return _result
-                    else:
-                        return ""
+                    # if _my_t is StatusRegTable and int(cmd0adr, 2) <= 16:
+                    #     self.debug_msg += log_formatter("*** Warning ***",
+                    #                                     [("Key Not Found", "No Key in table , reserved ?")])
+                    return _result
+                    # else:
+                    #     return ""
 
                 for _i in range(_cnt):
                     try:
@@ -174,10 +274,10 @@ class CanFrame(object):
                         # Use float as Data format in these register
                         if _reg in [DataRegTable.SPD, DataRegTable.ACC, DataRegTable.DEC, DataRegTable.CRA,
                                     DataRegTable.CRN, DataRegTable.CRH, ]:
-                            _result.append([_reg.name, hex2float(raw_data)])
+                            _result.append([_reg.name, CanFrame._DataConverter.hex2float(raw_data)])
                         # Use int as Data format in these register
                         elif _reg in [DataRegTable.CID, DataRegTable.MCS]:
-                            _result.append([_reg.name, hex2int32(raw_data)])
+                            _result.append([_reg.name, CanFrame._DataConverter.hexstr2int(raw_data)])
                         # Use Enum for Baud rate
                         elif _reg == DataRegTable.BDR:
                             try:
@@ -187,13 +287,14 @@ class CanFrame(object):
                                 print(BaudRateDict)
                                 raise e
                         else:
-                            _result.append([_reg.name, hex2int32(raw_data)])
+                            _result.append([_reg.name, CanFrame._DataConverter.hexstr2int(raw_data)])
                     except ValueError as e:
-                        war_log = log_formatter("Warning", [("Message", e)])
+                        war_log = CanFrame.log_formatter("Warning", [("Message", e)])
                         print(war_log)
                         break
                 return _result
 
+            # Check every bit in Status in Status Register
             def _fill_stat_value_inf(_data):
 
                 # 32bit and fill zero in left
@@ -205,19 +306,20 @@ class CanFrame(object):
                 for record in StatusValueTable:
                     _v = _data[record.value[0]]
                     if record in SafeInf and _v == "1":
-                        self.ERROR_FLG = True
-                        _result.append(
-                            [record.value[1], _v + " / " + record.value[2]]
-                        )
+                        self.errors.append([CanFrame.CANError.DataStatusError,
+                                            record.value[1], _v + " / " + record.value[2]])
                 return _result
 
             if self.cw == CWTable.R_Stat_Reg:
                 self.regs_values = _fill_reg_inf(_cnt=self.cnt_data, _data=data_msg, _my_t=StatusRegTable)
                 # Whatever you got , STATUS is the last one you got
                 keys = [x[0] for x in self.regs_values]
-                if "STATUS" in keys and "SPD" not in keys:
+
+                if "STATUS" in keys:        # and "SPD" not in keys: #todo test for debugging
+                    # RegTable is [POS,STATUS]
                     if "POS" in keys:
                         self.status = _fill_stat_value_inf(data_msg[1])
+                    # RegTable is [STATUS]
                     else:
                         self.status = _fill_stat_value_inf(data_msg[0])
             elif self.cw == CWTable.R_Data_Reg:
@@ -227,9 +329,9 @@ class CanFrame(object):
             elif self.cw == CWTable.CMD:
                 self.command = CMDTable(cmd0adr)
 
-            self.debug_msg += log_formatter("Action", [("CW Means", self.cw.name)])
+            self.debug_msg += CanFrame.log_formatter("Action", [("CW Means", self.cw.name)])
             if self.cw in [CWTable.W_Data_Reg, CWTable.R_Data_Reg]:
-                self.debug_msg += log_formatter("Data Frame - Data Reg", self.regs_values)
+                self.debug_msg += CanFrame.log_formatter("Data Frame - Data Reg", self.regs_values)
             elif self.cw == CWTable.CMD:
                 data_frame = []
                 if self.command in [CMDTable.ENA, CMDTable.OFF]:
@@ -241,39 +343,34 @@ class CanFrame(object):
                 elif self.command == CMDTable.READ_DATA_REGS:
                     d1 = data_msg[0][:2]
                     d2 = data_msg[0][2:4]
-                    data_frame.append(("Data Reg Start:", DataRegTable.query(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg Start:", DataRegTable.query(CanFrame._DataConverter.hexstr2bin(d1, 7))))
                     data_frame.append(("Data Reg count:", int(d2, 16)))
                 elif self.command == CMDTable.READ_STATUS_REGS:
                     d1 = data_msg[0][:2]
                     d2 = data_msg[0][2:4]
-                    data_frame.append(("Data Reg Start:", StatusRegTable.query(str(bin(int(d1, 16)))[2:].rjust(7, "0"))))
+                    data_frame.append(("Data Reg Start:", StatusRegTable.query(CanFrame._DataConverter.hexstr2bin(d1, 7))))
                     data_frame.append(("Data Reg count:", int(d2, 16)))
                 else:
                     data_frame.append((self.command.name, int(data_msg, 16)))
-                self.debug_msg += log_formatter("Data Frame", [("Command", data_frame)])
+                self.debug_msg += CanFrame.log_formatter("Data Frame", [("Command", data_frame)])
             else: #CWTable.R_Stat_Reg
                 keys = [x[0] for x in self.regs_values]
                 if "POS" in keys or "SPD" in keys:
-                    self.debug_msg += log_formatter("Data Frame - Stat Reg", self.regs_values)
-                if self.status is not None:
-                    if self.ERROR_FLG:
-                        self.debug_msg += log_formatter("STATUS", self.status)
-                    else:
-                        self.debug_msg += log_formatter("STATUS", [("0 ERROR", "0 WARNING")])
-            self.debug_msg += log_end()
+                    self.debug_msg += CanFrame.log_formatter("Data Frame - Stat Reg", self.regs_values)
+            self.debug_msg += CanFrame.log_end()
             if debug:
                 print(self.debug_msg)
 
+    @staticmethod
+    def log_formatter(title, tcs):
+        result = "| %s | \n" % title
+        for tc in tcs:
+            result += "+ %-22s :  %s \n" % (tc[0], tc[1])
+        return result
 
-def log_formatter(title, tcs):
-    result = "| %s | \n" % title
-    for tc in tcs:
-        result += "+ %-22s :  %s \n" % (tc[0], tc[1])
-    return result
-
-
-def log_end():
-    return "%s\n" % ("*"*60)
+    @staticmethod
+    def log_end():
+        return "%s\n" % ("*" * 60)
 
 
 class CanMsgListener(Process):
@@ -328,7 +425,7 @@ def str2canmsg(raw_cmd: str):
 
 if __name__ == "__main__":
     pass
-    bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate=500000)
+    bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
     cnt = 0
     while True:
         for msg in bus:

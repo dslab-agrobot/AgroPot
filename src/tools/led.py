@@ -4,7 +4,7 @@ import neopixel
 import time
 from enum import Enum
 
-#  proc = subprocess.Popen(['sudo','python3','/home/pi/led.py', 'on_r'])
+#  proc = subprocess.Popen(['sudo','python3','/home/pi/led.py', 'on_r']) print("****", debug)
 # GIPO use BCM Position
 
 

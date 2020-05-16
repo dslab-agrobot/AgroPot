@@ -243,7 +243,7 @@ SafeInf = [
 
 class DataRegTable(OhEnum):
 
-    # RegNae   ADR       Value              Detail
+    # RegNae   ADR       Description              Detail
     CID = ["0000000", "Channel ID", "Determined by motor"]  # 0x00
     BDR = ["0000001", "Baud Rate", "Default 132000"]  # 0x01
     MCS = ["0000010", "Motor Control Subdivision",
@@ -532,6 +532,6 @@ class CommonCMD(object):
 # print(CommonCMD.disable_motor("ALL"))
 # print(CommonCMD.move_dis("ALL", -10))
 # print(CommonCMD.read_data_regs("X0", DataRegTable.SPD, 1))
-
+# print(CommonCMD.read_status_regs("X0", StatusRegTable.STATUS, 1))
 # print(CommonCMD._CommonCMD__easy_cmd(tar=DeviceTable.BroadCast, src=DeviceTable.Pi, cw=CWTable.CMD, cmd0reg=CMDTable.MOV, data=16*mm_pp))
 
