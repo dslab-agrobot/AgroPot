@@ -1,0 +1,297 @@
+{
+    "Readme": {
+        "进制": "bit_end和bit_start为10进制，其余数字均为16进制",
+        "格式": "寄存器，寄存器属性",
+        "微步": "如修改微步为8，加速度A和速度V1，VMAX也应同时扩大8倍",
+        "其他": "文件仅用来配置寄存器，不会把TMC寄存器内容更新回文件"
+    },
+    "CHOPCONF": {
+        "description": "CHOPPER CONFIGURATION",
+        "address": "6c",
+        "default": "080301C3",
+        "current": "80101c3",
+        "attribute": {
+            "mres": {
+                "description": "MRES micro step resolution",
+                "type": "select",
+                "bit_start": "24",
+                "bit_end": "27",
+                "default": "8",
+                "current": "8",
+                "choice": {
+                    "microstep256": "0",
+                    "microstep128": "1",
+                    "microstep64": "2",
+                    "microstep32": "3",
+                    "microstep16": "4",
+                    "microstep8": "5",
+                    "microstep4": "6",
+                    "microstep2": "7",
+                    "fullstep": "8"
+                }
+            },
+            "vsense": {
+                "description": "sense resistor voltage based current scaling",
+                "type": "select",
+                "bit_start": "17",
+                "bit_end": "17",
+                "default": "0",
+                "current": "0",
+                "choice": {
+                    "Low sensitivity, high sense resistor voltage": 0,
+                    "High sensitivity, low sense resistor voltage": 1
+                }
+            }
+        }
+    },
+    "GCONF": {
+        "description": "General Configuration Registers",
+        "address": "00",
+        "default": "00000004",
+        "current": "4",
+        "attribute": {
+            "en_pwm_mode": {
+                "description": "StealthChop voltage PWM mode",
+                "type": "select",
+                "bit_start": "2",
+                "bit_end": "2",
+                "default": "1",
+                "current": "1",
+                "choice": {
+                    "disabled": "0",
+                    "enabled": "1"
+                }
+            }
+        }
+    },
+    "IHOLD_IRUN": {
+        "description": "IHOLD and IRUN and IHOLDDELAY",
+        "address": "10",
+        "default": "00000500",
+        "current": "00000500",
+        "attribute": {
+            "IRUN": {
+                "description": "Motor run current (0=1/32…31=32/32)",
+                "type": "input",
+                "bit_start": "8",
+                "bit_end": "12",
+                "default": "5",
+                "current": "5"
+            }
+        }
+    },
+    "A1": {
+        "description": "First acceleration between VSTART and V1 (unsigned)",
+        "address": "24",
+        "default": "F",
+        "current": "F",
+        "attribute": {
+            "A1": {
+                "description": "First acceleration between VSTART and V1 (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "F",
+                "current": "F"
+            }
+        }
+    },
+    "VSTART": {
+        "description": "Motor start velocity (unsigned)",
+        "address": "23",
+        "default": "0",
+        "current": "0",
+        "attribute": {
+            "VSTOP": {
+                "description": "Motor start velocity (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "17",
+                "default": "0",
+                "current": "0"
+            }
+        }
+    },
+    "V1": {
+        "description": "First acceleration / deceleration phase threshold velocity (unsigned) 0: Disables A1 and D1 phase, use AMAX, DMAX only",
+        "address": "25",
+        "default": "0",
+        "current": "f0",
+        "attribute": {
+            "V1": {
+                "description": "First acceleration between VSTART and V1 (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "0",
+                "current": "F0"
+            }
+        }
+    },
+    "AMAX": {
+        "description": "Second acceleration between V1 and VMAX (unsigned) This is the acceleration and deceleration value for velocity mode.",
+        "address": "26",
+        "default": "F",
+        "current": "F",
+        "attribute": {
+            "AMAX": {
+                "description": "First acceleration between VSTART and V1 (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "F",
+                "current": "F"
+            }
+        }
+    },
+    "VMAX": {
+        "description": "Motion ramp target velocity (for positioning ensure VMAX ≥ VSTART) (unsigned) This is the target velocity in velocity mode. It can be changed any time during a motion.",
+        "address": "27",
+        "default": "0",
+        "current": "f0",
+        "attribute": {
+            "VMAX": {
+                "description": "Motion ramp target velocity (for positioning ensure VMAX ≥ VSTART) (unsigned) This is the target velocity in velocity mode. It can be changed any time during a motion.",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "0",
+                "current": "F0"
+            }
+        }
+    },
+    "DMAX": {
+        "description": "Deceleration between VMAX and V1 (unsigned)",
+        "address": "28",
+        "default": "f",
+        "current": "f",
+        "attribute": {
+            "DMAX": {
+                "description": "Deceleration between VMAX and V1 (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "f",
+                "current": "f"
+            }
+        }
+    },
+    "D1": {
+        "description": "Deceleration between V1 and VSTOP (unsigned)",
+        "address": "2A",
+        "default": "f",
+        "current": "f",
+        "attribute": {
+            "D1": {
+                "description": "Deceleration between V1 and VSTOP (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "f",
+                "current": "f"
+            }
+        }
+    },
+    "VSTOP": {
+        "description": "Motor stop velocity (unsigned) Attention: Do not set 0 in positioning mode, minimum 10 recommend!",
+        "address": "2B",
+        "default": "A",
+        "current": "A",
+        "attribute": {
+            "VSTOP": {
+                "description": "Motor stop velocity (unsigned)",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "17",
+                "default": "A",
+                "current": "A"
+            }
+        }
+    },
+    "TZEROWAIT": {
+        "description": "Defines the waiting time after ramping down to zero velocity before next movement or direction inversion can start.",
+        "address": "2c",
+        "default": "0",
+        "current": "0",
+        "attribute": {
+            "TZEROWAIT": {
+                "description": "Time range is about 0 to 2 seconds",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "15",
+                "default": "0",
+                "current": "0"
+            }
+        }
+    },
+    "XACTUAL": {
+        "description": "Actual motor position (signed).Use complement",
+        "address": "21",
+        "default": "0",
+        "current": "0",
+        "attribute": {
+            "XACTUAL": {
+                "description": "Actual motor position (signed).Use complement",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "0",
+                "current": "0"
+            }
+        }
+    },
+    "XTARGET": {
+        "description": "Target position for ramp mode (signed)..Use complement",
+        "address": "2D",
+        "default": "0",
+        "current": "200",
+        "attribute": {
+            "XTARGET": {
+                "description": "Target position for ramp mode (signed).Use complement",
+                "type": "input",
+                "bit_start": "0",
+                "bit_end": "31",
+                "default": "0",
+                "current": "200"
+            }
+        }
+    },
+    "PWMCONF": {
+        "description": "VOLTAGE MODE PWM STEALTHCHOP",
+        "address": "70",
+        "default": "001401C8",
+        "current": "1401c8",
+        "attribute": {
+            "freewheel": {
+                "description": "Allows different standstill modes",
+                "type": "select",
+                "bit_start": "20",
+                "bit_end": "21",
+                "default": "1",
+                "current": "1",
+                "choice": {
+                    "Normal operation": "0",
+                    "Freewheeling": "1",
+                    "Coil shorted using LS drivers": "2",
+                    "Coil shorted using HS drivers": "3"
+                }
+            }
+        }
+    },
+    "GSTAT": {
+        "description": "Global status flags",
+        "address": "1",
+        "default": "",
+        "current": "",
+        "attribute": {
+            "reset": {
+                "description": "Indicates that the IC has been reset since the last read access to GSTAT. All registers have been cleared to reset values.",
+                "type": "read only",
+                "bit_start": "0",
+                "bit_end": "0",
+                "default": "",
+                "current": ""
+            }
+        }
+    }
+}
