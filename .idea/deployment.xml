@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="MyPi">
+  <component name="PublishConfigData">
     <serverData>
-      <paths name="MyPi">
+      <paths name="AgroPi">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jiangxt18@172.16.20.6:22 key (1)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="server3-agrobotpaper">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

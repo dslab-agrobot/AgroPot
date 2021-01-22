@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f6c1c0b8-1e1a-4c81-9633-71e4085a0626" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1VpSsEr6QVvV0IDXMjU5Y9C3sRA" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Projects\AgroPot\src\tools\camera" />
+      <recent name="D:\Projects\AgroPot\src\envpi" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.navigator">
+    <configuration name="VSMD1X6" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="AgroPot" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/tools" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/VSMD1X6.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="canMsgHandler" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="AgroPot" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/tools" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/canMsgHandler.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="led" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="AgroPot" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/tools" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/led.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="navigator" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="AgroPot" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/tools" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/navigator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.navigator" />
+        <item itemvalue="Python.VSMD1X6" />
+        <item itemvalue="Python.canMsgHandler" />
+        <item itemvalue="Python.led" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f6c1c0b8-1e1a-4c81-9633-71e4085a0626" name="Default Changelist" comment="" />
+      <created>1577948747953</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1577948747953</updated>
+      <workItem from="1589533649917" duration="57000" />
+      <workItem from="1589533718701" duration="1507000" />
+      <workItem from="1591103014855" duration="18000" />
+      <workItem from="1601255547508" duration="4325000" />
+      <workItem from="1601259891358" duration="854000" />
+      <workItem from="1601278795944" duration="10097000" />
+      <workItem from="1602291875546" duration="3413000" />
+      <workItem from="1602338541775" duration="2977000" />
+      <workItem from="1602485792540" duration="10946000" />
+      <workItem from="1602572920756" duration="1780000" />
+      <workItem from="1602657511072" duration="2639000" />
+      <workItem from="1602663454064" duration="1754000" />
+      <workItem from="1602667675217" duration="33350000" />
+      <workItem from="1603003255879" duration="18463000" />
+      <workItem from="1603380636771" duration="3000" />
+      <workItem from="1603414673545" duration="33000" />
+      <workItem from="1603874702756" duration="5038000" />
+      <workItem from="1604195326587" duration="5000" />
+      <workItem from="1604195683754" duration="17000" />
+      <workItem from="1605060316509" duration="2973000" />
+      <workItem from="1605688260850" duration="8000" />
+      <workItem from="1606726438729" duration="11000" />
+      <workItem from="1608174265390" duration="1959000" />
+      <workItem from="1608724852519" duration="3000" />
+      <workItem from="1609124066443" duration="10000" />
+      <workItem from="1610545339980" duration="428000" />
+      <workItem from="1610545816742" duration="615000" />
+      <workItem from="1611109443027" duration="20819000" />
+      <workItem from="1611286931904" duration="50000" />
+      <workItem from="1611286990177" duration="71000" />
+    </task>
+    <task id="LOCAL-00001" summary="Update Readme">
+      <created>1577949125666</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1577949125666</updated>
+    </task>
+    <task id="LOCAL-00002" summary="init CAN handler">
+      <created>1577950669053</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1577950669053</updated>
+    </task>
+    <task id="LOCAL-00003" summary="modifier construct">
+      <created>1578020314430</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1578020314430</updated>
+    </task>
+    <task id="LOCAL-00004" summary="modifier construct">
+      <created>1578020573578</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1578020573578</updated>
+    </task>
+    <task id="LOCAL-00005" summary="format source-id and target-id">
+      <created>1578054987963</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1578054987963</updated>
+    </task>
+    <task id="LOCAL-00006" summary="modified enum to int enum">
+      <created>1578055802961</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1578055802961</updated>
+    </task>
+    <task id="LOCAL-00007" summary="update device update">
+      <created>1578057919555</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1578057919555</updated>
+    </task>
+    <task id="LOCAL-00008" summary="add test log">
+      <created>1578058394267</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1578058394267</updated>
+    </task>
+    <task id="LOCAL-00009" summary="update command word">
+      <created>1578059711565</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1578059711565</updated>
+    </task>
+    <task id="LOCAL-00010" summary="update command word">
+      <created>1578059782082</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1578059782082</updated>
+    </task>
+    <task id="LOCAL-00011" summary="update comnment">
+      <created>1578060006483</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1578060006483</updated>
+    </task>
+    <task id="LOCAL-00012" summary="update Sys design">
+      <created>1578060655901</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1578060655901</updated>
+    </task>
+    <task id="LOCAL-00013" summary="update data message">
+      <created>1578061045073</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1578061045073</updated>
+    </task>
+    <task id="LOCAL-00014" summary="bug fixed">
+      <created>1578061185380</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1578061185380</updated>
+    </task>
+    <task id="LOCAL-00015" summary="bug fixed">
+      <created>1578061774410</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1578061774410</updated>
+    </task>
+    <task id="LOCAL-00016" summary="bug fixed">
+      <created>1578061932371</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1578061932371</updated>
+    </task>
+    <task id="LOCAL-00017" summary="bug fixed">
+      <created>1578062701798</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1578062701798</updated>
+    </task>
+    <task id="LOCAL-00018" summary="update CMD table">
+      <created>1578113095064</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1578113095064</updated>
+    </task>
+    <task id="LOCAL-00019" summary="bug fixed">
+      <created>1578113187664</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1578113187664</updated>
+    </task>
+    <task id="LOCAL-00020" summary="bug fixed">
+      <created>1578113378494</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1578113378494</updated>
+    </task>
+    <task id="LOCAL-00021" summary="basic okay">
+      <created>1578216263750</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1578216263750</updated>
+    </task>
+    <task id="LOCAL-00022" summary="All in one version">
+      <created>1578230332038</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1578230332038</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Can and VSMD divided version">
+      <created>1578231255590</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1578231255590</updated>
+    </task>
+    <task id="LOCAL-00024" summary="bug fixed">
+      <created>1578278718753</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1578278718753</updated>
+    </task>
+    <task id="LOCAL-00025" summary="No-elegant version">
+      <created>1578320052728</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1578320052728</updated>
+    </task>
+    <task id="LOCAL-00026" summary="a-bit-elegant version">
+      <created>1578488119218</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1578488119218</updated>
+    </task>
+    <task id="LOCAL-00027" summary="add date-time to error-log">
+      <created>1578488314262</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1578488314262</updated>
+    </task>
+    <task id="LOCAL-00028" summary="OhEnum query bug fixed">
+      <created>1578489544745</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1578489544745</updated>
+    </task>
+    <task id="LOCAL-00029" summary="pi env install">
+      <created>1578537549020</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1578537549020</updated>
+    </task>
+    <task id="LOCAL-00030" summary="bug fixed">
+      <created>1578580927313</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1578580927313</updated>
+    </task>
+    <task id="LOCAL-00031" summary="add test to main">
+      <created>1578581057881</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1578581057881</updated>
+    </task>
+    <task id="LOCAL-00032" summary="bug fixed">
+      <created>1578581112302</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1578581112302</updated>
+    </task>
+    <task id="LOCAL-00033" summary="bug fixed">
+      <created>1578581591468</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1578581591468</updated>
+    </task>
+    <task id="LOCAL-00034" summary="bug fixed">
+      <created>1578583156915</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1578583156915</updated>
+    </task>
+    <task id="LOCAL-00035" summary="temp fixed">
+      <created>1578583816908</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1578583816908</updated>
+    </task>
+    <task id="LOCAL-00036" summary="temp fixed">
+      <created>1578584043461</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1578584043461</updated>
+    </task>
+    <task id="LOCAL-00037" summary="bash bug fix">
+      <created>1578650180805</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1578650180805</updated>
+    </task>
+    <task id="LOCAL-00038" summary="stable version">
+      <created>1578750729129</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1578750729129</updated>
+    </task>
+    <task id="LOCAL-00039" summary="lens version">
+      <created>1611286118136</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1611286118136</updated>
+    </task>
+    <task id="LOCAL-00040" summary="add .idea">
+      <created>1611286539180</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1611286539180</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="modifier construct" />
+    <MESSAGE value="format source-id and target-id" />
+    <MESSAGE value="modified enum to int enum" />
+    <MESSAGE value="update device update" />
+    <MESSAGE value="add test log" />
+    <MESSAGE value="update command word" />
+    <MESSAGE value="update comnment" />
+    <MESSAGE value="update Sys design" />
+    <MESSAGE value="update data message" />
+    <MESSAGE value="update CMD table" />
+    <MESSAGE value="basic okay" />
+    <MESSAGE value="All in one version" />
+    <MESSAGE value="Can and VSMD divided version" />
+    <MESSAGE value="No-elegant version" />
+    <MESSAGE value="a-bit-elegant version" />
+    <MESSAGE value="add date-time to error-log" />
+    <MESSAGE value="OhEnum query bug fixed" />
+    <MESSAGE value="pi env install" />
+    <MESSAGE value="add test to main" />
+    <MESSAGE value="bug fixed" />
+    <MESSAGE value="temp fixed" />
+    <MESSAGE value="bash bug fix" />
+    <MESSAGE value="stable version" />
+    <MESSAGE value="lens version" />
+    <MESSAGE value="add .idea" />
+    <option name="LAST_COMMIT_MESSAGE" value="add .idea" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="736" y="240" key="#Deployment" timestamp="1605060338869">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="552" y="178" key="#Deployment/0.0.1920.1040@0.0.1920.1040" timestamp="1603874741897" />
+    <state x="736" y="240" key="#Deployment/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1605060338869" />
+    <state x="715" y="222" key="#SSH_Configurations" timestamp="1605060337527">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="536" y="165" key="#SSH_Configurations/0.0.1920.1040@0.0.1920.1040" timestamp="1603874740171" />
+    <state x="715" y="222" key="#SSH_Configurations/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1605060337527" />
+    <state x="720" y="110" key="CommitChangelistDialog2" timestamp="1611286538679">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="720" y="110" key="CommitChangelistDialog2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286538679" />
+    <state x="249" y="123" key="DiffContextDialog" timestamp="1611286249080">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="249" y="123" key="DiffContextDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286249080" />
+    <state x="987" y="369" key="FileChooserDialogImpl" timestamp="1611286929446">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1603414704449" />
+    <state x="987" y="369" key="FileChooserDialogImpl/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286929446" />
+    <state x="673" y="303" key="Vcs.Push.Dialog.v2" timestamp="1611286996975">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="673" y="303" key="Vcs.Push.Dialog.v2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286996975" />
+    <state x="157" y="12" width="2375" height="1215" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1611286897438">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="157" y="12" width="2375" height="1215" key="com.intellij.history.integration.ui.views.FileHistoryDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286897438" />
+    <state x="390" y="113" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1602663465256">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="390" y="113" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1602663465256" />
+    <state x="989" y="396" key="git4idea.merge.GitMergeDialog" timestamp="1611286370429">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="989" y="396" key="git4idea.merge.GitMergeDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286370429" />
+    <state x="875" y="396" key="git4idea.merge.GitPullDialog" timestamp="1611286514597">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="875" y="396" key="git4idea.merge.GitPullDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286514597" />
+    <state x="1049" y="548" key="git4idea.ui.GitResetDialog" timestamp="1611286621532">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1049" y="548" key="git4idea.ui.GitResetDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286621532" />
+    <state x="1077" y="557" key="git4idea.ui.GitStashDialog" timestamp="1611286592157">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1077" y="557" key="git4idea.ui.GitStashDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286592157" />
+  </component>
+</project>
