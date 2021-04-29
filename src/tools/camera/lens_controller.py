@@ -21,7 +21,7 @@ class DefaultValue(IntEnum):
 class MicroStep(Enum):
     full = "8"
     step2 = "7"
-    step4 = "6"
+    step4 = "6"  
     step8 = "5"
     step16 = "4"
     step32 = "3"
