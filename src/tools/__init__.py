@@ -1,2 +1,2 @@
-from . import cobot, detector
+from . import cobot, detector, canManager
 
