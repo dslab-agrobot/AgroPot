@@ -38,32 +38,90 @@ SafeDevice = [
 class Navigator(object):
     def __init__(self):
         self.bus = can.interface.Bus(channel='can0', bustype='socketcan_ctypes')  # socketcan_native
-        # # bitrate = 500000
-        # self.bus.send(KinggoCAN.enable(DeviceID.motorBroadcastid))
+        # bitrate = 500000
+        self.bus.send(KinggoCAN.enable(DeviceID.motorBroadcastid))
+        self.send(KinggoCAN.disable(DeviceID.motorBroadcastid))
+        self.mycobot = RobotArm()
 
+        time.sleep(0.5)
         # zeroing
         # WheelWard X Y Z
         self.pos = [0, 0, 0, 0]
+
+        self.robot_arm_record = None
+        pass
+
+    def send(self, msg, st=0.1):
+        self.bus.send(msg)
+        time.sleep(st)
         pass
 
     def move(self, device: Enum, value_mm):
-        time_slot = value_mm/spd + 0.75
-        value_mm = int(value_mm)
-        if device in [GroupID.groupWheel, GroupID.groupSlider]:
-            msg = KinggoCAN.pps_grp(device.value, value_mm)
-        elif device in [DeviceID.motorSlideY1, DeviceID.motorSlideZ1]:
-            msg = KinggoCAN.move_to(device.value, value_mm)
+        time_slot = abs(value_mm/spd) + 0.75
+        value_mm = int(value_mm * ppmm)
+        # print("ppmm", ppmm)
+        self.send(KinggoCAN.disable(DeviceID.motorBroadcastid))
+        if device == GroupID.groupWheel:
+            self.send(KinggoCAN.enable(DeviceID.motorWheelBackL))
+            self.send(KinggoCAN.enable(DeviceID.motorWheelBackR))
+            self.send(KinggoCAN.enable(DeviceID.motorWheelFrontL))
+            self.send(KinggoCAN.enable(DeviceID.motorWheelFrontR))
+            msg = KinggoCAN.pps_grp(device, value_mm)
+        elif device == GroupID.groupSlider:
+            self.send(KinggoCAN.enable(DeviceID.motorSlideX1))
+            self.send(KinggoCAN.enable(DeviceID.motorSlideX2))
+            msg = KinggoCAN.pps_grp(device, value_mm)
+        elif device == DeviceID.motorSlideY1:
+            self.send(KinggoCAN.enable(DeviceID.motorSlideY1))
+            msg = KinggoCAN.move_to(device, value_mm)
+        elif device == DeviceID.motorSlideZ1:
+            self.send(KinggoCAN.enable(DeviceID.motorSlideZ1))
+            msg = KinggoCAN.move_to(device, value_mm)
         else:
             raise Exception("Device ID not in safe range")
-        self.bus.send(msg)
+
+        # if device in [GroupID.groupWheel, GroupID.groupSlider]:
+        #     msg = KinggoCAN.pps_grp(device, value_mm)
+        # elif device in [DeviceID.motorSlideY1, DeviceID.motorSlideZ1]:
+        #     msg = KinggoCAN.move_to(device, value_mm)
+        # else:
+        #     raise Exception("Device ID not in safe range")
+        self.send(msg)
         print("Waiting for moving: %.2f" % time_slot)
         time.sleep(time_slot)
+
+    def show_locate(self):
+
+        # step1 Move Z to top level
+        self.move(DeviceID.motorSlideZ1, 500)
+
+        # step2 rotate camera and locate the ball
+        args_list = [None, ["h", 15], ["h", -30], ["V", 15], ["h", -30]]
+        for arg in args_list:
+            if arg:
+                print("Camera rotate", arg)
+                self.mycobot.cam_rotate(arg[0], arg[1])
+            movement = self.mycobot.locate(precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
+            print("Located:\nFront: %.2f cm, Right: %.2fcm, Down: %.2fcm" % (movement[0], movement[1], movement[2]))
+            if movement:
+                delta_x = int(movement[0]*10)
+                delta_y = int(movement[1]*10)
+                delta_z = int(movement[2]*10)
+                for d, n in [[GroupID.groupWheel, delta_x], [DeviceID.motorSlideY1, delta_y],
+                             [DeviceID.motorSlideZ1, delta_z]]:
+                    if n > 40:
+                        print("Robot move %s %dmm:" % (d, n))
+                        self.move(d, n)
+                # step3 state to observer and locate again
+                self.mycobot.state(AngleAnimation.Observer)
+                self.mycobot.locate(precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
+                break
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("act", help="action", type=str)
-    parser.add_argument("--n", help="num", type=float)
+    parser.add_argument("--n", help="num, mm for move", type=float)
     args = parser.parse_args()
     nav = Navigator()
 
@@ -77,10 +135,11 @@ def main():
     elif args.act == "Z":
         nav.move(DeviceID.motorSlideZ1, args.n)
     elif args.act == "A":
-        animation()
+        # animation()
         pass
-
 
 
 if __name__ == "__main__":
     main()
+
+# python navigator.py X --n 1

@@ -5,7 +5,7 @@ import sys
 from enum import Enum
 from typing import Union
 from ctypes import *
-from VSMD.canMsgHandler import VsmdCanFrame
+# from VSMD.canMsgHandler import VsmdCanFrame
 
 # plus base for motor
 step_base = 200
@@ -48,7 +48,7 @@ def float2hexlist(_f: float):
         res = hex(fp.contents.value)[2:].rjust(8, "0")
     else:
         res = hex(int(fp.contents.value) & 0xFFFFFFFF)[2:].rjust(8, "0")
-    res = [res[i:i + 2] for i in range(0, len(res), 2)]
+    res = [int(res[i:i + 2], base=16) for i in range(0, len(res), 2)]
     return res
 
 
@@ -61,14 +61,14 @@ def int2hexlist(_i):
         res = hex(_i)[2:].rjust(8, "0")
     else:
         res = hex(_i & 0xFFFFFFFF)[2:].rjust(8, "0")
-    res = [res[i:i+2] for i in range(0, len(res), 2)]
+    res = [int(res[i:i+2], base=16) for i in range(0, len(res), 2)]
     return res
 
 
 def hex2int32(_hex):
     i = int(_hex, 16)
     cp = pointer(c_int(i))
-    fp = cast(cp, POINTER(c_int32))
+    fp = cast(cp, POINTER(c_int16))
     return fp.contents.value
 
 
@@ -189,17 +189,18 @@ class KinggoCAN(object):
             """
             data_frame = None
             if command_body in [msgCmdVSMD.enable, msgCmdVSMD.disable, msgCmdVSMD.stop, msgCmdVSMD.original,
-                                msgCmdVSMD.zero_start, msgCmdVSMD.save, msgCmdVSMD.msgCmdVSMD.pre_order_run]:
-                data_frame = [data[0], 0, 0, 0, 0, 0, 0, 0]
+                                msgCmdVSMD.zero_start, msgCmdVSMD.save, msgCmdVSMD.pre_order_run]:
+                data_frame = [data[0].value, 0, 0, 0, 0, 0, 0, 0]
             elif command_body in [msgCmdVSMD.move]:
                 d_list = float2hexlist(data[1])
-                data_frame = [data[0], 0, 0, 0, d_list[0], d_list[1], d_list[2], d_list[3]]
+                data_frame = [data[0].value, 0, 0, 0, d_list[0], d_list[1], d_list[2], d_list[3]]
             elif command_body in [msgCmdVSMD.move_to, msgCmdVSMD.relative_move,
                                   msgCmdVSMD.pre_order_set, msgCmdVSMD.pre_order_group]:
                 d_list = int2hexlist(data[1])
-                data_frame = [data[0], 0, 0, 0, d_list[0], d_list[1], d_list[2], d_list[3]]
+                data_frame = [data[0].value, 0, 0, 0, d_list[0], d_list[1], d_list[2], d_list[3]]
             elif command_body in [msgCmdVSMD.read_status_reg, msgCmdVSMD.read_data_reg]:
-                data_frame = [data[0], 0, 0, 0, data[1], data[2], 0, 0]
+                data_frame = [data[0].value, 0, 0, 0, data[1], data[2], 0, 0]
+            # print("idx", idx, "data", data_frame)
             msg = can.Message(arbitration_id=idx, data=data_frame, extended_id=True)
         return msg
 
@@ -211,7 +212,7 @@ class KinggoCAN(object):
     @staticmethod
     def disable(target_id):
         return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
-                                        command_body=KinggoCAN.MsgCmdVSMD.dis, data=[target_id])
+                                        command_body=KinggoCAN.MsgCmdVSMD.disable, data=[target_id])
 
     @staticmethod
     def move(target_id, speed: float):
@@ -306,7 +307,8 @@ def enableMotor(targetid):
 
 
 # enableMotor(0x01)
-# print(float2hexlist(6400))
-# print(hex2float("45c800"))
-# print(hex2int32("45c800"))
+# print(int2hexlist(-6401))
+# print(hex(230))
+# print(hex2float("ffe6ff"))
+# print(hex2int32("004000"))
 # print(bin(0<<7), int("0b1111",base=2))
