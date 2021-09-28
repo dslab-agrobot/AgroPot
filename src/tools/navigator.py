@@ -10,13 +10,14 @@ __license__ = "GPL V3"
 __version__ = "0.1"
 
 """
-import os
 import argparse
-from multiprocessing import Process, Manager, Value
-import time
+import os
 import sys
-from cobot import *
+import time
+from multiprocessing import Manager, Process, Value
+
 from canManager import *
+from cobot import *
 
 # Speed of motor for plus
 # Unit : plus pre second
@@ -37,7 +38,8 @@ SafeDevice = [
 
 class Navigator(object):
     def __init__(self):
-        self.bus = can.interface.Bus(channel='can0', bustype='socketcan_ctypes')  # socketcan_native
+        self.bus = can.interface.Bus(
+            channel='can0', bustype='socketcan_ctypes')  # socketcan_native
         # bitrate = 500000
         self.bus.send(KinggoCAN.enable(DeviceID.motorBroadcastid))
         self.send(KinggoCAN.disable(DeviceID.motorBroadcastid))
@@ -101,8 +103,10 @@ class Navigator(object):
             if arg:
                 print("Camera rotate", arg)
                 self.mycobot.cam_rotate(arg[0], arg[1])
-            movement = self.mycobot.locate(precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
-            print("Located:\nFront: %.2f cm, Right: %.2fcm, Down: %.2fcm" % (movement[0], movement[1], movement[2]))
+            movement = self.mycobot.locate(
+                precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
+            print("Located:\nFront: %.2f cm, Right: %.2fcm, Down: %.2fcm" %
+                  (movement[0], movement[1], movement[2]))
             if movement:
                 delta_x = int(movement[0]*10)
                 delta_y = int(movement[1]*10)
@@ -114,7 +118,8 @@ class Navigator(object):
                         self.move(d, n)
                 # step3 state to observer and locate again
                 self.mycobot.state(AngleAnimation.Observer)
-                self.mycobot.locate(precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
+                self.mycobot.locate(
+                    precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
                 break
 
 
