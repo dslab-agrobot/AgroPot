@@ -23,6 +23,14 @@ Pixels = [
     366, 244, 193, 142, 114, 98, 79, 67, 59, 53, 48
 ]
 
+def camera_capture():
+    cap = cv2.VideoCapture(0)
+    for i in range(5):
+        cap.read()
+        time.sleep(0.01)
+    ret, frame = cap.read()
+    cap.release()
+    return frame
 
 def distance_estimate(pix):
     max_num = Pixels.__len__()
