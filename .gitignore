@@ -139,3 +139,6 @@ dmypy.json
 .idea/dictionaries/JC.xml
 .idea/dictionaries/JC.xml
 
+# Custom data file
+.flag
+.stat
