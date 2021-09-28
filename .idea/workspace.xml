@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f6c1c0b8-1e1a-4c81-9633-71e4085a0626" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="f6c1c0b8-1e1a-4c81-9633-71e4085a0626" name="Default Changelist" comment="add .idea">
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/AgroPot.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AgroPot.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/JC.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/JC.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tools/cobot.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tools/cobot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tools/motorControl.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tools/motorControl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tools/navigator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tools/navigator.py" afterDir="false" />
     </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -26,23 +34,38 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../ThinkBayes2-master" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Projects\AgroPot\src\tools" />
+      <recent name="D:\Projects\AgroPot\src\deprecated" />
       <recent name="D:\Projects\AgroPot\src\tools\camera" />
       <recent name="D:\Projects\AgroPot\src\envpi" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.navigator">
-    <configuration name="VSMD1X6" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.tf_hub_fast_style_transfer_for_arbitrary_styles">
+    <configuration name="canManager (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="AgroPot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -54,8 +77,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/VSMD1X6.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/canManager.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -64,7 +86,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="canMsgHandler" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="detector" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="AgroPot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -76,8 +98,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/canMsgHandler.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/detector.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -86,7 +107,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="led" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="motorControl (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="AgroPot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -98,8 +119,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/led.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/motorControl.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -108,7 +128,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="navigator" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="AgroPot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -120,8 +140,28 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/navigator.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tools/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="tf_hub_fast_style_transfer_for_arbitrary_styles" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="AgroPot" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Desktop" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$USER_HOME$/Desktop/tf_hub_fast_style_transfer_for_arbitrary_styles.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -132,10 +172,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.navigator" />
-        <item itemvalue="Python.VSMD1X6" />
-        <item itemvalue="Python.canMsgHandler" />
-        <item itemvalue="Python.led" />
+        <item itemvalue="Python.tf_hub_fast_style_transfer_for_arbitrary_styles" />
+        <item itemvalue="Python.detector" />
+        <item itemvalue="Python.test" />
+        <item itemvalue="Python.motorControl (1)" />
+        <item itemvalue="Python.canManager (1)" />
       </list>
     </recent_temporary>
   </component>
@@ -178,7 +219,7 @@
       <workItem from="1610545816742" duration="615000" />
       <workItem from="1611109443027" duration="20819000" />
       <workItem from="1611286931904" duration="50000" />
-      <workItem from="1611286990177" duration="71000" />
+      <workItem from="1611286990177" duration="2120000" />
     </task>
     <task id="LOCAL-00001" summary="Update Readme">
       <created>1577949125666</created>
@@ -460,7 +501,35 @@
       <option name="project" value="LOCAL" />
       <updated>1611286539180</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="add .idea">
+      <created>1611287074094</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1611287074094</updated>
+    </task>
+    <task id="LOCAL-00042" summary="20210429 fix">
+      <created>1619673874133</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1619673874133</updated>
+    </task>
+    <task id="LOCAL-00043" summary="add .idea">
+      <created>1619674860632</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1619674860632</updated>
+    </task>
+    <task id="LOCAL-00044" summary="showcase">
+      <created>1621649001726</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1621649001726</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -471,16 +540,15 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="modifier construct" />
-    <MESSAGE value="format source-id and target-id" />
     <MESSAGE value="modified enum to int enum" />
     <MESSAGE value="update device update" />
     <MESSAGE value="add test log" />
@@ -503,8 +571,10 @@
     <MESSAGE value="bash bug fix" />
     <MESSAGE value="stable version" />
     <MESSAGE value="lens version" />
+    <MESSAGE value="20210429 fix" />
     <MESSAGE value="add .idea" />
-    <option name="LAST_COMMIT_MESSAGE" value="add .idea" />
+    <MESSAGE value="showcase" />
+    <option name="LAST_COMMIT_MESSAGE" value="showcase" />
   </component>
   <component name="WindowStateProjectService">
     <state x="736" y="240" key="#Deployment" timestamp="1605060338869">
@@ -517,10 +587,10 @@
     </state>
     <state x="536" y="165" key="#SSH_Configurations/0.0.1920.1040@0.0.1920.1040" timestamp="1603874740171" />
     <state x="715" y="222" key="#SSH_Configurations/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1605060337527" />
-    <state x="720" y="110" key="CommitChangelistDialog2" timestamp="1611286538679">
+    <state x="720" y="110" key="CommitChangelistDialog2" timestamp="1611287073642">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="720" y="110" key="CommitChangelistDialog2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286538679" />
+    <state x="720" y="110" key="CommitChangelistDialog2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611287073642" />
     <state x="249" y="123" key="DiffContextDialog" timestamp="1611286249080">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -530,10 +600,18 @@
     </state>
     <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1603414704449" />
     <state x="987" y="369" key="FileChooserDialogImpl/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286929446" />
-    <state x="673" y="303" key="Vcs.Push.Dialog.v2" timestamp="1611286996975">
+    <state x="364" y="123" key="MergeDialog" timestamp="1611287107078">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="673" y="303" key="Vcs.Push.Dialog.v2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286996975" />
+    <state x="364" y="123" key="MergeDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611287107078" />
+    <state x="1107" y="500" width="576" height="401" key="MultipleFileMergeDialog" timestamp="1611287186761">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1107" y="500" width="576" height="401" key="MultipleFileMergeDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611287186761" />
+    <state x="673" y="303" key="Vcs.Push.Dialog.v2" timestamp="1611287197231">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="673" y="303" key="Vcs.Push.Dialog.v2/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611287197231" />
     <state x="157" y="12" width="2375" height="1215" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1611286897438">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -558,5 +636,15 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1077" y="557" key="git4idea.ui.GitStashDialog/3840.371.1080.1860/0.0.2560.1400@0.0.2560.1400" timestamp="1611286592157" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/tools/motorControl.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
