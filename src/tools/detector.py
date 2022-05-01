@@ -23,8 +23,19 @@ Pixels = [
     366, 244, 193, 142, 114, 98, 79, 67, 59, 53, 48
 ]
 
-def camera_capture():
-    cap = cv2.VideoCapture(0)
+def camera_capture(cfg = [0, 1920, 1080]):
+    """
+    Args:
+        cfg: [0, 1920, 1080] [2, 640, 480]
+    
+    """
+    # {"next_dir": 1, "F": 0.0, "X": 200.0, "Y": 390.0, "Z": 310.0}
+    # [0, 1920, 1080] [2, 640, 480]
+    # 0 4K camera
+    # 2 logi camera
+    cap = cv2.VideoCapture(cfg[0])
+    cap.set(3, cfg[1])
+    cap.set(4, cfg[2])
     for i in range(5):
         cap.read()
         time.sleep(0.01)
@@ -112,7 +123,9 @@ def detect(img, hsv_ranges, min_r=0.35, debug=False):
     # cv2.waitKey()
     return result, c_img
 
-
+if __name__ == "__main__":
+    img = camera_capture()
+    cv2.imwrite("2.png", img)
 # img_path = 'C:/Users/JC/Desktop/f_t1.jpg'
 # img = cv2.imread(img_path)
 # print(detect(img, GREEN_RANGES))

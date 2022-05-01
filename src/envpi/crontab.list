@@ -1,0 +1,3 @@
+0 10 * * * /usr/bin/python3 /home/pi/AgroPot/src/tools/navigator.py D > /home/pi/log/`date +\%Y\%m\%d`-10.log 2>&1 &
+0 17 * * * /usr/bin/python3 /home/pi/AgroPot/src/tools/navigator.py D > /home/pi/log/`date +\%Y\%m\%d`-17.log 2>&1 &
+0 23 * * * /usr/bin/python3 /home/pi/AgroPot/src/tools/fileTrans.py 2>&1 &
