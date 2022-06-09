@@ -46,12 +46,14 @@ SafeDevice = [
 class Navigator(object):
     def __init__(self):
         os.system("usbreset")
+        self.readStat()
         self.bus = can.interface.Bus(
-            channel='can0', bustype='socketcan_ctypes', bitrate = 500000)
+            channel=self.stat["channel"], bustype='socketcan_ctypes', bitrate = self.stat["bitrate"])
         # bitrate = 500000
         self.bus.send(KinggoCAN.enable(DeviceID.motorBroadcastid))
         self.send(KinggoCAN.disable(DeviceID.motorBroadcastid))
         # self.mycobot = RobotArm()
+
 
         time.sleep(0.5)
         self.maxmium= {
@@ -63,7 +65,7 @@ class Navigator(object):
         # zeroing
         # WheelWard X Y Z
         # self.stat = {}
-        self.readStat()
+        
         print("机器人前后移动 F 零点:医校")
         print("云台前后移动 X 零点: 医校")
         print("云台水平移动 Y 零点: 体育馆")
@@ -73,9 +75,11 @@ class Navigator(object):
             print("机器人自动任务下次前进方向 医校")
         elif self.stat["next_dir"] == 1:
             print("机器人自动任务下次前进方向 操场")
-        
+           
+    
     def __del__(self):
         self.saveStat()
+
         
     def saveStat(self):
         _f = open(pj(dir_path,'robot.json'), 'w')
@@ -83,6 +87,7 @@ class Navigator(object):
         _f.close()
 
     def readStat(self):
+
         if os.path.exists(pj(dir_path,'robot.json')):
             _f = open(pj(dir_path,'robot.json'), 'r')
             self.stat = json.load(_f)
@@ -93,15 +98,14 @@ class Navigator(object):
                 "next_dir": -1,
             }
             self.saveStat()
-        
-        
+             
 
     def data_collection(self):
         # distance_f = 10000  # 10 m, 1000 mm: 1m
         data_dir = os.path.join(
             "/home/pi/data",  dt.now().strftime("%Y%m%d-%H%M"))
-        # print(data_dir)
-        # exit()
+        
+        
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
         step_f = 320
@@ -116,7 +120,7 @@ class Navigator(object):
         self.stat["next_dir"] = step_dir*-1
         self.saveStat()
 
-    def send(self, msg, st=2):
+    def send(self, msg, st=0.1):
         self.bus.send(msg)
         time.sleep(st)
         pass
@@ -194,52 +198,23 @@ class Navigator(object):
         self.send(msg)
         time_slot += 0.75
         print("Waiting for moving: %.2f" % time_slot)
+        
         self.saveStat()
         if sleep:
             time.sleep(time_slot)
 
-    def test(self):
+    def test(self,idx):
         img = camera_capture()
         height, width, channels = img.shape
         img = cv2.line(img, (0,height//2), (width,height//2), (0,255,0), 2)
         img = cv2.line(img, (width//2,0), (width//2,height), (0,255,0), 2)
-        cv2.imwrite("01.png", img)
+        cv2.imwrite("t%02d.png"%idx, img)
         return
         self.move(GroupID.groupWheel, -100, False)
         for i in range(1):
             img = camera_capture()
             cv2.imwrite("move%d.png"%i, img)
             time.sleep(0.25)
-
-    # def show_locate(self):
-
-    #     # step1 Move Z to top level
-    #     self.move(DeviceID.motorSlideZ1, 500)
-
-    #     # step2 rotate camera and locate the ball
-    #     args_list = [None, ["h", 15], ["h", -30], ["V", 15], ["h", -30]]
-    #     for arg in args_list:
-    #         if arg:
-    #             print("Camera rotate", arg)
-    #             self.mycobot.cam_rotate(arg[0], arg[1])
-    #         movement = self.mycobot.locate(
-    #             precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
-    #         print("Located:\nFront: %.2f cm, Right: %.2fcm, Down: %.2fcm" %
-    #               (movement[0], movement[1], movement[2]))
-    #         if movement:
-    #             delta_x = int(movement[0]*10)
-    #             delta_y = int(movement[1]*10)
-    #             delta_z = int(movement[2]*10)
-    #             for d, n in [[GroupID.groupWheel, delta_x], [DeviceID.motorSlideY1, delta_y],
-    #                          [DeviceID.motorSlideZ1, delta_z]]:
-    #                 if n > 40:
-    #                     print("Robot move %s %dmm:" % (d, n))
-    #                     self.move(d, n)
-    #             # step3 state to observer and locate again
-    #             self.mycobot.state(AngleAnimation.Observer)
-    #             self.mycobot.locate(
-    #                 precision=0.05, color_ranges=GREEN_RANGES, min_r=0.02)
-    #             break
 
 
 def main():
@@ -248,7 +223,9 @@ def main():
     parser.add_argument("--n", help="num, mm for move", type=float)
     args = parser.parse_args()
     nav = Navigator()
-
+    listener = CanMsgListener(channel=nav.stat["channel"],bitrate=nav.stat["bitrate"],loglevel= KinggoCAN.LogLevel.stm32_fail_only)
+    listener.start()
+    
     args.act = str(args.act).upper()
     if args.act == "F":
         nav.move(GroupID.groupWheel, args.n)
@@ -259,12 +236,16 @@ def main():
     elif args.act == "Z":
         nav.move(DeviceID.motorSlideZ1, args.n)
     elif args.act == "T":
-        nav.test()
+        nav.test(args.n)
     elif args.act == "D":
         nav.data_collection()
     # elif args.act == "A":
     #     # animation()
     #     pass
+    
+    listener.terminate()
+    listener.join()
+
 
 
 if __name__ == "__main__":

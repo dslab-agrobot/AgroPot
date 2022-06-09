@@ -1,3 +1,4 @@
+import imp
 import os
 import can
 import time
@@ -5,6 +6,11 @@ import sys
 from enum import Enum
 from typing import Union
 from ctypes import *
+from multiprocessing import Process
+from os.path import join as pj
+import json
+from wechat import *
+
 # from VSMD.canMsgHandler import VsmdCanFrame
 
 # plus base for motor
@@ -82,6 +88,7 @@ class DeviceID(Enum):
     motorWheelFrontR = 0x06
     motorWheelBackL = 0x07
     motorWheelBackR = 0x08
+    PI = 0x09
 
 
 class GroupID(Enum):
@@ -89,53 +96,22 @@ class GroupID(Enum):
     groupWheel = 0x05
 
 
-class KinggoCANDebugger(object):
 
-    def __init__(self, message, debug=False):
-        """Decode raw message and send them to sub-frame
-
-        :param message: message in socket can bus
-        :param debug: print some log in decoding message
-
-        .. note:
-            This class write for CAN2.0 , which has 29-bitwise-ExtendId
-            and 8-bytes-dataFrame
-
-        .. note:
-            DO NOT try to use para in protect level (like: _extID) if you
-            have no idea what you are really doing with CAN Frame
-
-        """
-
-        # can device : can0 , vcan0
-        self.channel = message.channel
-        self.ERROR_FLG = False
-
-        # Data Length Code , Every two 0x para get 1 DLC
-        self.dlc = message.dlc
-
-        # print(type(message.arbitration_id))
-        if type(message.arbitration_id) == str:
-            message.arbitration_id = int(message.arbitration_id, 16)
-
-        # :type message.arbitration_id : int
-        # Convert this int to bin and use string to storage
-        ext_msg = str(bin(message.arbitration_id))[2:].rjust(29, "0")
-
-        # :type [str,]
-        if ext_msg[24] == "1":
-            self.ERROR_FLG = True
-
-        # :type message.data : bytearray
-        # Each element convert to an int in bytearray iteration
-        for t_hex in message.data:
-            if hex(t_hex) != 0x1f:
-                self.ERROR_FLG = False
-
+        
 
 class KinggoCAN(object):
 
-    class MsgHead(Enum):
+
+    class Device(Enum):
+        """
+        The first element of CAN msg
+        bit 19 to bit 16
+        """
+
+        pi = 0x0 << 24
+        stm32 = 0x1 << 24
+
+    class CmdType(Enum):
         """
         The first element of CAN msg
         bit 19 to bit 16
@@ -144,16 +120,28 @@ class KinggoCAN(object):
         camera = 0x1 << 16
         motor = 0x2 << 16
         gpio = 0x3 << 16
-
-    class MsgCustom(object):
+        
+    class SeqOffset(Enum):
         """
-        The second element of CAN msg
-        bit 15 to bit 8
+        CAN Index for oder
+        
+        Not use
+        bit 15 to bit 12
         """
-
-        @staticmethod
-        def motor(current_index=1, total_index=1):
-            return current_index << 12 | total_index << 8
+        default = 0x1 << 12
+    
+    pi_unsed_8to11 = 0x1 << 8
+    
+    class SeqAnswer(Enum):
+        """
+        Answer from STM32
+        
+        
+        bit 11 to bit 8
+        """
+        stm32_accept = 0x1 << 8
+        stm32_success = 0x2 << 8
+        stm32_fail = 0x3 << 8
 
     class MsgCmdVSMD(Enum):
         """
@@ -177,12 +165,111 @@ class KinggoCAN(object):
         pre_order_run = 0x21  # 0
         pre_order_group = 0x22  # int, move to
 
+    class LogLevel(Enum):
+        """
+        The first element of CAN msg
+        bit 19 to bit 16
+        """
+
+        all = 0
+        stm32_only = 1
+        stm32_fail_only = 2
+        nothing = 3
+
+    def __init__(self, message, loglevel=LogLevel.all):
+        """Decode raw message and send them to sub-frame
+
+        :param message: message in socket can bus
+
+        .. note:
+            This class write for CAN2.0 , which has 29-bitwise-ExtendId
+            and 8-bytes-dataFrame
+
+        .. note:
+            DO NOT try to use para in protect level (like: _extID) if you
+            have no idea what you are really doing with CAN Frame
+
+        """
+
+        def log_formatter(title, tcs):
+            result = "| %s | \n" % title
+            for tc in tcs:
+                result += "+ %-23s :  %s \n" % (tc[0], tc[1])
+            return result
+
+        def log_end():
+            return "%s\n" % ("*" * 59)
+
+        # can device : can0 , vcan0
+        self.channel = message.channel
+
+        # Data Length Code , Every two 0x para get 1 DLC
+        self.dlc = message.dlc
+        
+        self.ERROR_FLG = False
+        
+        # print(type(message.arbitration_id))
+        if type(message.arbitration_id) == str:
+            message.arbitration_id = int(message.arbitration_id, 16)
+        
+        debug_msg = log_end()
+
+        
+        flagBit = self.Device(message.arbitration_id & (0xF000000))
+        
+        seqOffset = self.SeqOffset(message.arbitration_id & 0xF000)
+        
+        
+        inf_list = [
+            ["Sender",flagBit.name],
+            ["Seq Offset",seqOffset.name],
+        ]
+        if flagBit == self.Device.pi:
+            cmdType = self.CmdType(message.arbitration_id & 0xF0000)
+            inf_list.insert(1,["Command Type",cmdType.name])
+            cmd = self.MsgCmdVSMD(message.arbitration_id & 0xFF)
+            inf_list.append(["VSMD CMD", cmd.name])
+        else:
+            seqAnswer = self.SeqAnswer(message.arbitration_id & 0xF00)
+            inf_list.append(["Seq Answer",seqAnswer.name])
+            if seqAnswer == KinggoCAN.SeqAnswer.stm32_fail:
+                self.ERROR_FLG = True
+
+            
+        
+        debug_msg += log_formatter("Debug", inf_list)
+        
+        
+        
+        if loglevel == KinggoCAN.LogLevel.all:
+            print(debug_msg)
+        elif loglevel == KinggoCAN.LogLevel.stm32_only:
+            if flagBit == self.Device.stm32:
+                print(debug_msg)
+        elif loglevel == KinggoCAN.LogLevel.stm32_fail_only:
+            if flagBit == self.Device.stm32 and seqAnswer == KinggoCAN.SeqAnswer.stm32_fail:
+                print(debug_msg)
+                
+        elif loglevel == KinggoCAN.LogLevel.nothing:
+            pass
+            
+
+
+
+        
+
+
+            # if flagBit == self.Device.stm32 and 
+
+        
+        
+
     @staticmethod
-    def __cmd_generate(command_head: MsgHead, custom_word: int, command_body: Enum, data: list):
+    def __cmd_generate(command_head: CmdType, custom_word: int, command_body: Enum, data: list):
         msg = None
         idx = command_head.value | custom_word | command_body.value
-        if command_head == KinggoCAN.MsgHead.motor:
-            idx |= KinggoCAN.MsgCustom.motor()
+        if command_head == KinggoCAN.CmdType.motor:
+            idx |= KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11
             msgCmdVSMD = KinggoCAN.MsgCmdVSMD
             """
             handle VSMD motors (4 wheel and 3 slider)
@@ -206,104 +293,125 @@ class KinggoCAN(object):
 
     @staticmethod
     def enable(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.enable, data=[target_id])
 
     @staticmethod
     def disable(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.disable, data=[target_id])
 
     @staticmethod
     def move(target_id, speed: float):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.move, data=[target_id, speed])
 
     @staticmethod
     def stop(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.stop, data=[target_id])
 
     @staticmethod
     def org(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.original, data=[target_id])
 
     @staticmethod
     def zero_start(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.zero_start, data=[target_id])
 
     @staticmethod
     def save(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.save, data=[target_id])
 
     @staticmethod
     def move_to(target_id, pos: int):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.move_to, data=[target_id, pos])
 
     @staticmethod
     def rmv(target_id, pos: int):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.relative_move, data=[target_id, pos])
 
     @staticmethod
     def pps_set(target_id, pps: int):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.pre_order_set, data=[target_id, pps])
 
     @staticmethod
     def pps_run(target_id):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.pre_order_run, data=[target_id])
 
     @staticmethod
     def pps_grp(target_id, pps: int):
         # todo relative move
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.pre_order_group, data=[target_id, pps])
 
     @staticmethod
     def read_data_reg(target_id, addr: int, cnt: int):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.read_data_reg, data=[target_id, addr, cnt])
 
     @staticmethod
     def read_stat_reg(target_id, addr: int, cnt: int):
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.read_status_reg, data=[target_id, addr, cnt])
 
     @staticmethod
     def write_data_reg(target_id, addr: int, value: int):
         # todo check type value
-        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.MsgHead.motor, custom_word=KinggoCAN.MsgCustom.motor(),
+        return KinggoCAN.__cmd_generate(command_head=KinggoCAN.CmdType.motor, custom_word=KinggoCAN.SeqOffset.default.value | KinggoCAN.pi_unsed_8to11,
                                         command_body=KinggoCAN.MsgCmdVSMD.write_data_reg, data=[target_id, addr, value])
 
     @staticmethod
     def convert_msg2str(msg: can.Message):
         pass
+    
 
+class CanMsgListener(Process):
+    
+    def __init__(self, channel="can0", bitrate=100000,loglevel=KinggoCAN.LogLevel.all):
+        super(CanMsgListener, self).__init__()
+        self.channel = channel
+        self.bitrate = bitrate
+        self.debug_msg = ""
+        self.cnt = 0
+        self.bus = can.interface.Bus(bustype='socketcan', channel=self.channel, bitrate=self.bitrate)
+        self.loglevel=loglevel
+        self.wx = WeChat()
 
-motor = 0x2
+    def run(self):
+        for _msg in self.bus:
+            self.handle(_msg,loglevel=self.loglevel)
+            self.cnt += 1
 
+    # @staticmethod
+    def handle(self,msg, loglevel):
+        frame = KinggoCAN(msg, loglevel=loglevel)
+        if frame.ERROR_FLG:
+            self.wx.send_data("STM32 Failed !!!")
+# motor = 0x2
 
-def enableMotor(targetid):
-    id = 0b00
-    print(bin(id))
-    id |= motor << 16
-    # 第几帧
-    id |= 1 << 12
-    # 共几帧
-    id |= 1 << 8
-    # 指令代码
-    id |= 0x01
-    dataTx = [targetid, 0, 0, 0, 0, 0, 0, 0]
-    print(hex(id), dataTx)
-    msg = can.Message(arbitration_id=id, data=dataTx, extended_id=True)
-    print(msg)
-    time.sleep(0.1)
+# def enableMotor(targetid):
+#     id = 0b00
+#     print(bin(id))
+#     id |= motor << 16
+#     # 第几帧
+#     id |= 1 << 12
+#     # 共几帧
+#     id |= 1 << 8
+#     # 指令代码
+#     id |= 0x01
+#     dataTx = [targetid, 0, 0, 0, 0, 0, 0, 0]
+#     print(hex(id), dataTx)
+#     msg = can.Message(arbitration_id=id, data=dataTx, extended_id=True)
+#     print(msg)
+#     time.sleep(0.1)
 
 
 # enableMotor(0x01)
@@ -312,3 +420,17 @@ def enableMotor(targetid):
 # print(hex2float("ffe6ff"))
 # print(hex2int32("004000"))
 # print(bin(0<<7), int("0b1111",base=2))
+
+if __name__ == "__main__":
+    if os.path.exists('robot.json'):
+        _f = open('robot.json', 'r')
+        stat = json.load(_f)
+        _f.close()
+        listener = CanMsgListener(channel=stat["channel"],bitrate=stat["bitrate"])
+    else:
+        listener = CanMsgListener()
+
+    listener.start()
+    # listener.terminate()
+    # listener.join()
+
