@@ -104,8 +104,7 @@ class KinggoCAN(object):
 
     class Device(Enum):
         """
-        The first element of CAN msg
-        bit 19 to bit 16
+        Device bit
         """
 
         pi = 0x0 << 24
@@ -166,11 +165,6 @@ class KinggoCAN(object):
         pre_order_group = 0x22  # int, move to
 
     class LogLevel(Enum):
-        """
-        The first element of CAN msg
-        bit 19 to bit 16
-        """
-
         all = 0
         stm32_only = 1
         stm32_fail_only = 2
@@ -207,6 +201,7 @@ class KinggoCAN(object):
         self.dlc = message.dlc
         
         self.ERROR_FLG = False
+        self.data = message.data
         
         # print(type(message.arbitration_id))
         if type(message.arbitration_id) == str:
@@ -218,7 +213,7 @@ class KinggoCAN(object):
         flagBit = self.Device(message.arbitration_id & (0xF000000))
         
         seqOffset = self.SeqOffset(message.arbitration_id & 0xF000)
-        
+        device = DeviceID(int(message.data[0]) & 0xF0000000)
         
         inf_list = [
             ["Sender",flagBit.name],
@@ -229,6 +224,8 @@ class KinggoCAN(object):
             inf_list.insert(1,["Command Type",cmdType.name])
             cmd = self.MsgCmdVSMD(message.arbitration_id & 0xFF)
             inf_list.append(["VSMD CMD", cmd.name])
+            inf_list.append(["Target Motor", device.name])
+
         else:
             seqAnswer = self.SeqAnswer(message.arbitration_id & 0xF00)
             inf_list.append(["Seq Answer",seqAnswer.name])

@@ -22,8 +22,6 @@ from detector import *
 from canManager import *
 from datetime import datetime as dt
 import json
-from dataset import getLoc
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # from cobot import *
@@ -64,12 +62,6 @@ class Navigator(object):
             "Y":700,
             "Z":350
         }
-        self.center={
-            "X": 220.0, 
-            "Y": 350.0, 
-            "Z": 300.0
-        }
-        # current_Y = 230 TBD
         # zeroing
         # WheelWard X Y Z
         # self.stat = {}
@@ -83,16 +75,14 @@ class Navigator(object):
             print("机器人自动任务下次前进方向 医校")
         elif self.stat["next_dir"] == 1:
             print("机器人自动任务下次前进方向 操场")
-        else:
-            raise Exception('DIR ERROR')
            
     
     def __del__(self):
         self.saveStat()
+
         
     def saveStat(self):
-        if self.stat["next_dir"] not in [1,-1]:
-            raise Exception('DIR ERROR')
+        return
         _f = open(pj(dir_path,'robot.json'), 'w')
         json.dump(self.stat, _f)
         _f.close()
@@ -109,8 +99,41 @@ class Navigator(object):
                 "next_dir": -1,
             }
             self.saveStat()
-       
              
+
+    def data_collection(self):
+        # distance_f = 10000  # 10 m, 1000 mm: 1m
+        data_dir = os.path.join(
+            "/home/pi/data",  dt.now().strftime("%Y%m%d-%H%M"))
+        
+        
+        if not os.path.exists(data_dir):
+            os.mkdir(data_dir)
+        step_f = 320
+        step_times = 32
+        step_dir = self.stat["next_dir"]
+        for i in range(step_times):
+            img = camera_capture()
+            img_path = os.path.join(
+                data_dir,  "%03d.png" % i)
+            cv2.imwrite(img_path, img)
+            self.move(GroupID.groupWheel, step_f * step_dir)
+        self.stat["next_dir"] = step_dir*-1
+        self.saveStat()
+        
+    def data_collection_fakeTest(self):
+            # distance_f = 10000  # 10 m, 1000 mm: 1m
+        step_dir = -1
+        for t in range(1,10000):
+            step_f = 320
+            step_times = 32
+            # step_dir = self.stat["next_dir"]
+            for i in range(step_times):
+                self.move(GroupID.groupWheel, step_f * step_dir)
+            step_dir = step_dir*-1
+            # self.stat["next_dir"] = step_dir*-1
+            # self.saveStat()
+
     def send(self, msg, st=0.1):
         self.bus.send(msg)
         time.sleep(st)
@@ -194,55 +217,6 @@ class Navigator(object):
         if sleep:
             time.sleep(time_slot)
 
-    
-    def data_collection(self):
-        # distance_f = 10000  # 10 m, 1000 mm: 1m
-        data_dir = os.path.join(
-            "/home/pi/data",  dt.now().strftime("%Y%m%d-%H%M"))
-
-
-        if not os.path.exists(data_dir):
-            os.mkdir(data_dir)
-        step_f = 320
-        step_times = 32
-        step_dir = self.stat["next_dir"]
-        for i in range(step_times):
-            img = camera_capture()
-            img_path = os.path.join(
-                data_dir,  "%03d.png" % i)
-            cv2.imwrite(img_path, img)
-            self.move(GroupID.groupWheel, step_f * step_dir)
-        self.stat["next_dir"] = step_dir*-1
-        self.saveStat()
-
-
-    def move2loc(self):
-        
-        cords = getLoc()
-        f_, y_ = 0,0
-        t_y = 0
-        for f,y in cords:
-            delta_f = f - f_
-            delta_y = y - y_
-            
-            self.move(GroupID.groupWheel, delta_f)
-            print(GroupID.groupWheel.name, '%.2fmm'%delta_f)
-            self.move(DeviceID.motorSlideY1, delta_y)
-            print(DeviceID.motorSlideY1.name, '%.2fmm'%delta_y)
-            f_, y_ = f,y
-            # Z max -280
-            self.move(DeviceID.motorSlideZ1, -60)
-            self.move(DeviceID.motorSlideZ1, 60)
-            t_y += delta_y
-            
-        
-        print("Centering")
-        self.move(DeviceID.motorSlideY1, -t_y)
-        print(DeviceID.motorSlideY1.name, '%.2fmm'%(-t_y))
-        # {"next_dir": 1, "F": 0.0, "X": 220.0, "Y": 350.0, "Z": -150.0, "channel": "can0", "bitrate": 50000}
-
-
-
     def test(self,idx):
         img = camera_capture()
         height, width, channels = img.shape
@@ -277,11 +251,11 @@ def main():
     elif args.act == "Z":
         nav.move(DeviceID.motorSlideZ1, args.n)
     elif args.act == "T":
-        nav.move2loc()
+        nav.test(args.n)
     elif args.act == "D":
         nav.data_collection()
-    elif args.act == "L":
-        nav.move2loc()
+    elif args.act == "FT":
+        nav.data_collection_fakeTest()
     # elif args.act == "A":
     #     # animation()
     #     pass

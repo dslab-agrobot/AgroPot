@@ -44,15 +44,23 @@ def camera_capture(cfg = [0, 1920, 1080]):
     # [0, 1920, 1080] [2, 640, 480]
     # 0 4K camera
     # 2 logi camera
-    cap = cv2.VideoCapture(cfg[0])
-    cap.set(3, cfg[1])
-    cap.set(4, cfg[2])
-    for i in range(5):
-        cap.read()
-        time.sleep(0.01)
-    ret, frame = cap.read()
-    cap.release()
-    return frame
+    for i in range(10):
+        cap = cv2.VideoCapture(cfg[0])
+        cap.set(3, cfg[1])
+        cap.set(4, cfg[2])
+        for i in range(5):
+            cap.read()
+            time.sleep(0.01)
+        ret, frame = cap.read()
+        cap.release()
+        if frame is None or frame.size == 0:
+            print("Empty image captured, retrying %d"%i)
+            os.system("usbreset")
+            continue
+        else:
+            return frame
+    raise Exception("USB camera at %d dead"%cfg[0])
+    # raise Warning("USB camera at %d dead"%cfg[0])
 
 def distance_estimate(pix):
     max_num = Pixels.__len__()
@@ -228,21 +236,14 @@ def green_cord(img, min_area = 600, max_area = 9e20, draw=False, k=1.1):
 
     return  out, img_green
 
-def test(record_path):
-    record_path = "/home/pi/20220501-1000"
-    out_root = "/home/pi/AgroPot/src/tools/"
-    names = list_files(record_path)
-    
-    for idx,n in enumerate(names):
-        img = cv2.imread(pj(record_path,n))
-        coor, img_out = green_cord(img,draw=True)
-        vis = np.concatenate((img, img_out), axis=1)
-        cv2.imwrite(pj(out_root, "%02d.png"%idx),vis)
-        # print(coor)
-        # return
-        print(idx, "*"*10)
-        
-    
+def test():
+    for i in range(10000):
+        # print("Try image at %d"%i)
+        img = camera_capture()
+        try:
+            cv2.imwrite("0.png",img)
+        except Exception as e:
+            print(e, "Try image at %d"%i)
     
 
 
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     # img = camera_capture()
     # cv2.imwrite("2.png", img)
     
-    test("?")
+    test()
 # 23pix per cm  
   
 # img_path = 'C:/Users/JC/Desktop/f_t1.jpg'
